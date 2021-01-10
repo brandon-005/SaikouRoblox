@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js';
+import { Client, Message, MessageEmbed } from 'discord.js';
 import rbx from 'noblox.js';
 
 export = {
@@ -9,19 +9,59 @@ export = {
     accessableby: 'MANAGE_MESSAGES',
     aliases: ['announce'],
   },
-  run: async (bot: Client, message: Message, args: string[]) => {
-    const Shout = args.join(' ');
-
+  run: async (bot: Client, message: Message) => {
     if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
-      return message.channel.send('No permission to run this command.');
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔐 Incorrect Permissions')
+          .setDescription('**Command Name:** shout\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setColor('#f94343')
+          .setFooter('<> - Staff Perms ● Public Perms - [] ')
+      );
     }
 
-    if (!Shout) {
-      return message.channel.send('You must input a message to shout.');
+    message.channel.send(
+      new MessageEmbed()
+        .setTitle('Prompt [1/1]') //
+        .setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to post a new shout.\n\n❓ **What message would you like to shout?**\n\nInput **cancel** to cancel the shout setup.`)
+        .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
+        .setColor('#7289DA')
+        .setThumbnail(bot.user!.displayAvatarURL())
+    );
+
+    const collectingShoutMsg = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
+    const ShoutMessage = collectingShoutMsg.first();
+
+    if (ShoutMessage!.content.toLowerCase() === 'cancel') return message.channel.send('Cancelled');
+
+    if (ShoutMessage!.content.length >= 255) {
+      return message.channel.send('You must post a shout that contains 255 characters or less, please re-run the setup.');
     }
 
-    rbx.shout(5447155, Shout);
+    const confirm = await message.channel.send(
+      new MessageEmbed() //
+        .setTitle('Are you sure?') //
+        .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
+        .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
+        .setColor('#f94343')
+    );
+    confirm.react('✅');
+    confirm.react('❌');
 
-    message.channel.send('Shout posted.');
+    const collectingConfirmation = await confirm.awaitReactions((reaction: any, user: any) => ['✅', '❌'].includes(reaction.emoji.name) && user.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
+    const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
+
+    if (ConfirmationResult === '✅') {
+      rbx.shout(5447155, `${ShoutMessage}`);
+
+      message.channel.send(
+        new MessageEmbed() //
+          .setTitle('✅ Success!')
+          .setDescription(`You successfully posted the shout:\n**${ShoutMessage}**`)
+          .setFooter('Successful Shout')
+          .setTimestamp()
+          .setColor('#2ED85F')
+      );
+    } else return message.channel.send('Cancelled Post.');
   },
 };
