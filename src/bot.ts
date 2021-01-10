@@ -2,6 +2,7 @@ import rbx from 'noblox.js';
 import { Client, Collection, MessageEmbed } from 'discord.js';
 import dotenv from 'dotenv';
 import RobloxToken from './models/token';
+import Exile from './models/userExile';
 
 dotenv.config();
 
@@ -17,9 +18,6 @@ bot.aliases = new Collection();
   bot[collection] = new Collection();
 });
 ['loadCommands', 'loadEvents'].forEach((handlerFile) => require(`./handlers/${handlerFile}.js`)(bot));
-
-const token = process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN;
-bot.login(token);
 
 async function refreshCookie() {
   const cookieDatabase = await RobloxToken.findOne({ _id: '5ff32afe08a98c2828ff1e3a' });
@@ -39,11 +37,25 @@ async function startApp() {
 
   setInterval(refreshCookie, 300000);
 
-  // -- Change Rank logs
+  // -- Removing user who's supposed to be exiled
+  async function ExileUsers() {
+    const user = Exile.find({}).select('RobloxUsername RobloxID');
 
+    (await user).forEach(async (r: any) => {
+      const rankName = await rbx.getRankNameInGroup(5447155, r.RobloxID);
+      console.log(`Roblox Name: ${r.RobloxUsername}\nGroup Rank: ${rankName}`);
+      if (rankName !== 'Guest') {
+        rbx.exile(5447155, r.RobloxID);
+        console.log(`Exiled: ${r.RobloxUsername}`);
+      }
+    });
+  }
+
+  setInterval(ExileUsers, 5000);
+
+  // -- Change Rank logs
   rbx.onAuditLog(5447155).on('data', (data) => {
     if (data.actionType === 'Change Rank') {
-      console.log(Object.values(data.description)[3]);
       bot.channels.cache.get('795630559660736513').send(
         new MessageEmbed() //
           .setTitle(`:warning: Updated Role!`)
@@ -59,3 +71,6 @@ async function startApp() {
 }
 
 startApp();
+
+const token = process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN;
+bot.login(token);
