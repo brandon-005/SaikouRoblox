@@ -41,20 +41,21 @@ async function startApp() {
   async function ExileUsers() {
     const user = Exile.find({}).select('RobloxUsername RobloxID');
 
-    (await user).forEach(async (r: any) => {
-      const rankName = await rbx.getRankNameInGroup(5447155, r.RobloxID);
-      console.log(`Roblox Name: ${r.RobloxUsername}\nGroup Rank: ${rankName}`);
+    (await user).forEach(async (player: any) => {
+      const rankName = await rbx.getRankNameInGroup(5447155, player.RobloxID);
+      // console.log(`Roblox Name: ${player.RobloxUsername}\nGroup Rank: ${rankName}`);
       if (rankName !== 'Guest') {
-        rbx.exile(5447155, r.RobloxID);
-        console.log(`Exiled: ${r.RobloxUsername}`);
+        rbx.exile(5447155, player.RobloxID);
+        console.log(`Exiled: ${player.RobloxUsername}`);
       }
     });
   }
 
-  setInterval(ExileUsers, 5000);
+  setInterval(ExileUsers, 60000);
 
   // -- Change Rank logs
-  rbx.onAuditLog(5447155).on('data', (data) => {
+  rbx.onAuditLog(5447155).on('data', async (data) => {
+    console.log(data);
     if (data.actionType === 'Change Rank') {
       bot.channels.cache.get('795630559660736513').send(
         new MessageEmbed() //
@@ -66,6 +67,31 @@ async function startApp() {
           .setFooter(`Updated User ID: ${Object.values(data.description)[0]} `)
           .setTimestamp()
       );
+    }
+
+    if (data.actionType === 'Remove Member') {
+      const user = await Exile.findOne({ RobloxUsername: Object.values(data.description)[1] });
+      if (user) {
+        bot.channels.cache.get('795630559660736513').send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Automatic Exile!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
+            .addField('Exile Giver:', `${user.Moderator}`, true)
+            .addField('Exile Reason:', `${user.Reason}`, true)
+            .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
+            .setTimestamp()
+        );
+      } else {
+        bot.channels.cache.get('795630559660736513').send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Exiled User!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${Object.values(data.description)[1]}'s was exiled by ${data.actor.user.username}**`)
+            .setFooter(`Updated User ID: ${Object.values(data.description)[0]} `)
+            .setTimestamp()
+        );
+      }
     }
   });
 }
