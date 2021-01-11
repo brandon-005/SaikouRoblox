@@ -68,11 +68,17 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        try {
-          rbx.setRank(5447155, RobloxID, 2);
-        } catch (e) {
-          return message.channel.send('Please make sure the user you are suspending is in the group!');
+        const rankName = await rbx.getRankNameInGroup(5447155, RobloxID);
+
+        if (rankName === 'Guest') {
+          return message.channel.send('Please input a user who is still in the group.');
         }
+
+        if (rankName === 'Devoted Fan') {
+          return message.channel.send('User is already suspended.');
+        }
+
+        rbx.setRank(5447155, RobloxID, 2);
 
         message.channel.send(
           new MessageEmbed() //
