@@ -77,6 +77,8 @@ export = {
 
         if (!Player) {
           const newSettings = await Exile.create({
+            Moderator: message.author.username,
+            Reason: `${Reason}`,
             RobloxUsername: `${RobloxName}`,
             RobloxID,
           });
