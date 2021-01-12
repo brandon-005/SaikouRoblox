@@ -72,7 +72,7 @@ export = {
         const Player = await Exile.findOne({ RobloxID });
 
         if (Player) {
-          return message.channel.send('lol noob already exiled');
+          return message.channel.send('User already exiled');
         }
 
         if (!Player) {
@@ -92,7 +92,7 @@ export = {
               .setTimestamp()
           );
 
-          bot.channels.cache.get('795648415958302731').send(
+          bot.channels.cache.get(`${process.env.MODERATION}`).send(
             new MessageEmbed() //
               .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
               .addField('User:', `${RobloxName}`, true)

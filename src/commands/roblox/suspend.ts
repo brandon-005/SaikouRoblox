@@ -20,6 +20,18 @@ export = {
       );
     }
 
+    function cancel(msg: any) {
+      if (msg.content.toLowerCase() === 'cancel')
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('Suspension Cancelled!') //
+            .setDescription(`The suspension has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
+        );
+    }
+
     message.channel.send(
       new MessageEmbed()
         .setTitle('Prompt [1/2]') //
@@ -31,6 +43,8 @@ export = {
 
     const collectingRobloxName = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
     const RobloxName: any = collectingRobloxName.first()?.toString();
+
+    if (cancel(collectingRobloxName.first())) return;
 
     let RobloxID;
     try {
@@ -52,7 +66,7 @@ export = {
       const collectingReason = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
       const Reason = collectingReason.first();
 
-      if (Reason!.content.toLowerCase() === 'cancel') return message.channel.send('Cancelled');
+      if (cancel(Reason)) return;
 
       const confirm = await message.channel.send(
         new MessageEmbed() //
@@ -89,7 +103,7 @@ export = {
             .setColor('#2ED85F')
         );
 
-        bot.channels.cache.get('795648415958302731').send(
+        bot.channels.cache.get(`${process.env.MODERATION}`).send(
           new MessageEmbed() //
             .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
             .addField('User:', `${RobloxName}`, true)
