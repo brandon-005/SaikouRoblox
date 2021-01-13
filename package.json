@@ -4,7 +4,9 @@
   "description": "Interacting with the Roblox API to create helpful solutions to issues currently faced on Roblox groups.",
   "main": "dist/bot.js",
   "scripts": {
-    "start": "ts-node src/bot.ts"
+    "start": "node build/dist/bot.js",
+    "build": "tsc",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -40,8 +42,6 @@
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "mongoose": "^5.11.9",
-    "noblox.js": "^4.7.3",
-    "ts-node": "^9.1.1",
-    "uninstall": "0.0.0"
+    "noblox.js": "^4.7.3"
   }
 }
