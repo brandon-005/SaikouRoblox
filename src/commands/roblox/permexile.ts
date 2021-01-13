@@ -8,7 +8,7 @@ export = {
     description: 'Permanently exile a Roblox user.',
     usage: '.exile <RobloxUserID> <reason>',
     accessableby: 'MANAGE_MESSAGES',
-    aliases: ['permremove', 'robloxban'],
+    aliases: ['permremove', 'robloxban', 'exile'],
   },
   run: async (bot: any, message: Message) => {
     if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
@@ -21,10 +21,22 @@ export = {
       );
     }
 
+    function cancel(msg: any) {
+      if (msg.content.toLowerCase() === 'cancel')
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('Suspension Cancelled!') //
+            .setDescription(`The suspension has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
+        );
+    }
+
     message.channel.send(
       new MessageEmbed()
         .setTitle('Prompt [1/2]') //
-        .setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to permanently exile a user.\n\n❓ **What is the Roblox username of the person you would like to permanently remove?**\n\nInput **cancel** to cancel the suspend prompt.`)
+        .setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to permanently exile a user.\n\n❓ **What is the Roblox username of the person you would like to permanently remove?**\n\nInput **cancel** to cancel the exile prompt.`)
         .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
         .setColor('#7289DA')
         .setThumbnail(bot.user!.displayAvatarURL())
@@ -33,18 +45,39 @@ export = {
     const collectingRobloxName = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
     const RobloxName: any = collectingRobloxName.first()?.toString();
 
+    if (cancel(collectingRobloxName.first())) return;
+
     let RobloxID;
     try {
       RobloxID = await rbx.getIdFromUsername(RobloxName);
     } catch (e) {
-      return message.channel.send('Username was never inputted in time or you put in an incorrect user.');
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔍 Unable to find Roblox user!')
+          .setDescription(`Please provide a valid Roblox username to **permexile**!`)
+          .setColor('#f94343')
+          .setFooter('Ensure the capitalisation is correct!')
+          .setTimestamp()
+      );
+    }
+
+    const Player = await Exile.findOne({ RobloxID });
+
+    if (Player) {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle(`❌ Unable to exile user`)
+          .setDescription(`The user you are trying to perform this action on is already exiled.`)
+          .setColor('#f94343')
+          .setFooter(`Unable to exile user.`)
+      );
     }
 
     try {
       message.channel.send(
         new MessageEmbed()
           .setTitle('Prompt [2/2]') //
-          .setDescription(`Please follow the instructions provided to permanently exile a user.\n\n❓ **What is the reason for exiling this user?**\n\nInput **cancel** to cancel the suspend prompt.`)
+          .setDescription(`Please follow the instructions provided to permanently exile a user.\n\n❓ **What is the reason for exiling this user?**\n\nInput **cancel** to cancel the exile prompt.`)
           .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
           .setColor('#7289DA')
           .setThumbnail(bot.user!.displayAvatarURL())
@@ -53,7 +86,7 @@ export = {
       const collectingReason = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
       const Reason = collectingReason.first();
 
-      if (Reason!.content.toLowerCase() === 'cancel') return message.channel.send('Cancelled');
+      if (cancel(collectingReason.first())) return;
 
       const confirm = await message.channel.send(
         new MessageEmbed() //
@@ -69,12 +102,6 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        const Player = await Exile.findOne({ RobloxID });
-
-        if (Player) {
-          return message.channel.send('User already exiled');
-        }
-
         if (!Player) {
           const newSettings = await Exile.create({
             Moderator: message.author.username,
@@ -104,9 +131,23 @@ export = {
               .setTimestamp()
           );
         }
-      } else return message.channel.send('Cancelled Suspension.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('Exile Cancelled!')
+            .setDescription(`The exile has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
+        );
     } catch (e) {
-      return message.channel.send('Prompt was not filled within the time limit.');
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('⏱ Out of time!')
+          .setDescription('You ran out of time to input the prompt answer!')
+          .setColor('#f94343')
+          .setThumbnail(message.author.displayAvatarURL())
+      );
     }
   },
 };

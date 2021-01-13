@@ -116,7 +116,13 @@ export = {
         );
       } else return message.channel.send('Cancelled Suspension.');
     } catch (e) {
-      return message.channel.send('Prompt was not filled within the time limit.');
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('⏱ Out of time!')
+          .setDescription('You ran out of time to input the prompt answer!')
+          .setColor('#f94343')
+          .setThumbnail(message.author.displayAvatarURL())
+      );
     }
   },
 };
