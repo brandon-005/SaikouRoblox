@@ -61,7 +61,8 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        rbx.shout(5447155, `${ShoutMessage}`);
+        // @ts-ignore
+        rbx.shout(process.env.GROUP, `${ShoutMessage}`);
 
         message.channel.send(
           new MessageEmbed() //

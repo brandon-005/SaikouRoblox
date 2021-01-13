@@ -82,7 +82,8 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        const rankName = await rbx.getRankNameInGroup(5447155, RobloxID);
+        // @ts-ignore
+        const rankName = await rbx.getRankNameInGroup(process.env.GROUP, RobloxID);
 
         if (rankName === 'Guest') {
           return message.channel.send('Please input a user who is still in the group.');

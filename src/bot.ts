@@ -42,7 +42,8 @@ async function startApp() {
     const user = Exile.find({}).select('RobloxUsername RobloxID');
 
     (await user).forEach(async (player: any) => {
-      const rankName = await rbx.getRankNameInGroup(5447155, player.RobloxID).catch();
+      // @ts-ignore
+      const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch();
       if (rankName !== 'Guest') {
         rbx.exile(5447155, player.RobloxID);
         console.log(`Exiled: ${player.RobloxUsername}`);
