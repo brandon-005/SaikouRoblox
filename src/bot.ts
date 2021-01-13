@@ -23,7 +23,8 @@ async function refreshCookie() {
   const cookieDatabase = await RobloxToken.findOne({ Test: process.env.RobloxTest });
   const Newcookie = await rbx.refreshCookie();
   cookieDatabase!.RobloxToken = Newcookie;
-  cookieDatabase?.save();
+  // @ts-ignore
+  cookieDatabase.save();
 }
 
 async function startApp() {
