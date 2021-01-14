@@ -45,7 +45,8 @@ async function startApp() {
       // @ts-ignore
       const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch();
       if (rankName !== 'Guest') {
-        rbx.exile(5447155, player.RobloxID);
+        // @ts-ignore
+        rbx.exile(process.env.GROUP, player.RobloxID);
         console.log(`Exiled: ${player.RobloxUsername}`);
       }
     });
