@@ -2,6 +2,7 @@ import { readdirSync } from 'fs';
 
 export = (bot: any) => {
   const load = (directories: string) => {
+    console.log('here')
     const commands = readdirSync(`${__dirname}/../commands/${directories}/`).filter((directoryFile) => directoryFile.endsWith('.js'));
     commands.forEach((commandFile) => {
       const command = require(`${__dirname}/../commands/${directories}/${commandFile}`);
