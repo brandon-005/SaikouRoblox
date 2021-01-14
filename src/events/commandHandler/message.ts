@@ -7,5 +7,6 @@ export = async (bot: any, message: any) => {
 
   if (!message.content.startsWith(prefix)) return;
   const commandfile = bot.commands.get(cmd) || bot.commands.get(bot.aliases.get(cmd));
+  console.log(commandfile);
   if (commandfile) commandfile.run(bot, message, args);
 };
