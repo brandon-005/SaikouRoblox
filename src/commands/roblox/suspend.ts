@@ -94,7 +94,7 @@ export = {
         }
 
         // @ts-ignore
-        rbx.setRank(process.env.GROUP, RobloxID, process.env.roleNumber);
+        rbx.setRank(process.env.GROUP, RobloxID, 8);
 
         message.channel.send(
           new MessageEmbed() //
