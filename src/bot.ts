@@ -65,6 +65,29 @@ async function startApp() {
 
   setInterval(ExileUsers, 7000);
 
+  const blacklisted = ['https://', 'beans'];
+
+  // @ts-ignore
+  rbx.getWall(process.env.GROUP, 'Desc', 10).then((res) => {
+    const posts = res.data;
+    console.log(posts);
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < posts.length; i++) {
+      const msg = posts[i];
+
+      console.log(msg.body.includes('beans'));
+
+      blacklisted.forEach(async (word) => {
+        if (msg.body.includes(word)) {
+          // @ts-ignore
+          await rbx.deleteWallPost(process.env.GROUP, msg.id);
+          console.log(`Deleted post: ${msg.body}`);
+        }
+      });
+      //  console.log(`${msg.poster.displayName} said: ${msg.body}\nID: ${msg.id}`);
+    }
+  });
+
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
   // -- Change Rank logs
