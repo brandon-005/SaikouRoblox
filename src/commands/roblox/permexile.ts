@@ -119,6 +119,7 @@ export = {
               .setTimestamp()
           );
 
+          console.log(process.env.MODERATION);
           bot.channels.cache.get(process.env.MODERATION).send(
             new MessageEmbed() //
               .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())

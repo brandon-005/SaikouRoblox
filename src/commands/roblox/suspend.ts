@@ -104,6 +104,7 @@ export = {
             .setColor('#2ED85F')
         );
 
+        console.log(process.env.MODERATION);
         bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
             .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
