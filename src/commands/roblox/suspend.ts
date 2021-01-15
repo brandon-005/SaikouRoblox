@@ -89,11 +89,12 @@ export = {
           return message.channel.send('Please input a user who is still in the group.');
         }
 
-        if (rankName === 'Devoted Fan') {
+        if (rankName === `${process.env.SUSPENDED_RANK}`) {
           return message.channel.send('User is already suspended.');
         }
 
-        rbx.setRank(5447155, RobloxID, 2);
+        // @ts-ignore
+        rbx.setRank(process.env.GROUP, RobloxID, 8);
 
         message.channel.send(
           new MessageEmbed() //
@@ -104,7 +105,7 @@ export = {
             .setColor('#2ED85F')
         );
 
-        bot.channels.cache.get(`${process.env.MODERATION}`).send(
+        await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
             .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
             .addField('User:', `${RobloxName}`, true)
