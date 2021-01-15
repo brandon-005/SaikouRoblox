@@ -44,10 +44,10 @@ async function startApp() {
     (await user).forEach(async (player: any) => {
       // @ts-ignore
       const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
+
       if (rankName !== 'Guest') {
         // @ts-ignore
         await rbx.exile(process.env.GROUP, player.RobloxID);
-        console.log(`Exiled: ${player.RobloxUsername}`);
 
         bot.channels.cache.get(process.env.ADMIN_LOG).send(
           new MessageEmbed() //
@@ -63,7 +63,7 @@ async function startApp() {
     });
   }
 
-  setInterval(ExileUsers, 5000);
+  setInterval(ExileUsers, 7000);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
