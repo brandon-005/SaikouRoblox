@@ -43,10 +43,10 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
-      const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch();
+      const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
       if (rankName !== 'Guest') {
         // @ts-ignore
-        rbx.exile(process.env.GROUP, player.RobloxID);
+        await rbx.exile(process.env.GROUP, player.RobloxID);
         console.log(`Exiled: ${player.RobloxUsername}`);
       }
     });
