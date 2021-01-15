@@ -1,6 +1,7 @@
 export = async (bot: any, message: any) => {
   const prefix = process.env.PREFIX!;
   console.log('made it 1');
+  console.log(prefix);
   if (!message.content.startsWith(prefix) || message.author.bot || message.channel.type === 'dm') return;
 
   console.log('made it 2');
