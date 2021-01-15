@@ -141,6 +141,7 @@ export = {
             .setThumbnail(bot.user!.displayAvatarURL())
         );
     } catch (e) {
+      console.error(e);
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
