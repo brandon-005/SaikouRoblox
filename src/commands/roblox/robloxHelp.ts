@@ -1,6 +1,5 @@
 import { Client, Message, MessageEmbed } from 'discord.js';
 
-console.log('hi');
 export = {
   config: {
     name: 'robloxHelp',
