@@ -89,7 +89,7 @@ export = {
           return message.channel.send('Please input a user who is still in the group.');
         }
 
-        if (rankName === 'Devoted Fan') {
+        if (rankName === `${process.env.SUSPENDED_RANK}`) {
           return message.channel.send('User is already suspended.');
         }
 
