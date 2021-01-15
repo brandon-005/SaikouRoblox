@@ -104,7 +104,7 @@ export = {
             .setColor('#2ED85F')
         );
 
-        bot.channels.cache.get(`${process.env.MODERATION}`).send(
+        bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
             .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
             .addField('User:', `${RobloxName}`, true)
