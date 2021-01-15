@@ -39,7 +39,7 @@ async function startApp() {
 
   // -- Removing user who's supposed to be exiled
   async function ExileUsers() {
-    const user = Exile.find({}).select('RobloxUsername RobloxID');
+    const user = Exile.find({}).select('RobloxUsername RobloxID Moderator Reason');
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
@@ -48,6 +48,17 @@ async function startApp() {
         // @ts-ignore
         await rbx.exile(process.env.GROUP, player.RobloxID);
         console.log(`Exiled: ${player.RobloxUsername}`);
+
+        bot.channels.cache.get(process.env.ADMIN_LOG).send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Automatic Exile!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
+            .addField('Exile Giver:', `${player.Moderator}`, true)
+            .addField('Exile Reason:', `${player.Reason}`, true)
+            .setFooter(`Exiled User ID: ${player.RobloxID} `)
+            .setTimestamp()
+        );
       }
     });
   }

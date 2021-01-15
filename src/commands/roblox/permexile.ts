@@ -121,13 +121,13 @@ export = {
 
           await bot.channels.cache.get(process.env.MODERATION).send(
             new MessageEmbed() //
-              .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
+              .setAuthor(`Saikou Group | Permanent Exile`, bot.user.displayAvatarURL())
               .addField('User:', `${RobloxName}`, true)
               .addField('Moderator:', `<@${message.author.id}>`, true)
               .addField('Reason:', `${Reason}`)
               .setThumbnail(bot.user.displayAvatarURL())
               .setColor('#2ED85F')
-              .setFooter('Suspension')
+              .setFooter('Exile')
               .setTimestamp()
           );
         }
