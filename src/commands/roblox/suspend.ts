@@ -93,7 +93,8 @@ export = {
           return message.channel.send('User is already suspended.');
         }
 
-        rbx.setRank(5447155, RobloxID, 2);
+        // @ts-ignore
+        rbx.setRank(process.env.GROUP, RobloxID, 2);
 
         message.channel.send(
           new MessageEmbed() //
