@@ -96,22 +96,25 @@ export = {
         // @ts-ignore
         rbx.setRank(process.env.GROUP, RobloxID, 8);
 
+        // @ts-ignore
+        const thumbnail = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+
         message.channel.send(
           new MessageEmbed() //
             .setTitle('✅ Success!')
             .setDescription(`You successfully suspended **${RobloxName}**.`)
-            .setFooter('Successful Shout')
+            .setFooter('Successful Suspension')
             .setTimestamp()
             .setColor('#2ED85F')
         );
 
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
-            .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
+            .setAuthor(`Saikou Group | Suspension`, `${Object.values(thumbnail)[0].imageUrl}`)
             .addField('User:', `${RobloxName}`, true)
             .addField('Moderator:', `<@${message.author.id}>`, true)
             .addField('Reason:', `${Reason}`)
-            .setThumbnail(bot.user.displayAvatarURL())
+            .setThumbnail(`${Object.values(thumbnail)[0].imageUrl}`)
             .setColor('#2ED85F')
             .setFooter('Suspension')
             .setTimestamp()
