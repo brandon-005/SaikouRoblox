@@ -43,27 +43,31 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
-      const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
-      if (rankName !== 'Guest') {
-        // @ts-ignore
-        await rbx.exile(process.env.GROUP, player.RobloxID);
-        console.log(`Exiled: ${player.RobloxUsername}`);
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
 
-        bot.channels.cache.get(process.env.ADMIN_LOG).send(
-          new MessageEmbed() //
-            .setTitle(`:warning: Automatic Exile!`)
-            .setColor('#FFD62F')
-            .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-            .addField('Exile Giver:', `${player.Moderator}`, true)
-            .addField('Exile Reason:', `${player.Reason}`, true)
-            .setFooter(`Exiled User ID: ${player.RobloxID} `)
-            .setTimestamp()
-        );
+      if (rank !== 0) {
+        await rbx // @ts-ignore
+          .exile(process.env.GROUP, player.RobloxID)
+          .then(() => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Automatic Exile!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
+                .addField('Exile Giver:', `${player.Moderator}`, true)
+                .addField('Exile Reason:', `${player.Reason}`, true)
+                .setFooter(`Exiled Player ID: ${player.RobloxID} `)
+                .setTimestamp()
+            );
+          })
+          .catch((error) => {
+            console.log('There was an error exiling the player!', error);
+          });
       }
     });
   }
 
-  setInterval(ExileUsers, 5000);
+  setInterval(ExileUsers, 7000);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
