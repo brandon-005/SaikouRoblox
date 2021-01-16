@@ -43,49 +43,93 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
-      const rankName = await rbx.getRankNameInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log('Get rank in group encountered an error', err));
 
-      if (rankName !== 'Guest') {
-        // @ts-ignore
-        await rbx.exile(process.env.GROUP, player.RobloxID);
+      if (typeof rank === 'undefined') return;
 
-        bot.channels.cache.get(process.env.ADMIN_LOG).send(
-          new MessageEmbed() //
-            .setTitle(`:warning: Automatic Exile!`)
-            .setColor('#FFD62F')
-            .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-            .addField('Exile Giver:', `${player.Moderator}`, true)
-            .addField('Exile Reason:', `${player.Reason}`, true)
-            .setFooter(`Exiled User ID: ${player.RobloxID} `)
-            .setTimestamp()
-        );
+      if (rank !== 0) {
+        await rbx // @ts-ignore
+          .exile(process.env.GROUP, player.RobloxID)
+          .then(() => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Automatic Exile!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
+                .addField('Exile Giver:', `${player.Moderator}`, true)
+                .addField('Exile Reason:', `${player.Reason}`, true)
+                .setFooter(`Exiled Player ID: ${player.RobloxID} `)
+                .setTimestamp()
+            );
+          })
+          .catch((error) => {
+            console.log('There was an error exiling the player!', error);
+          });
       }
     });
   }
 
-  setInterval(ExileUsers, 7000);
+  setInterval(ExileUsers, 30000);
 
-  const blacklisted = ['https://', 'beans'];
+  const blacklisted = ['https://', 'have robux', 'me robux'];
 
   // @ts-ignore
-  rbx.getWall(process.env.GROUP, 'Desc', 10).then((res) => {
-    const posts = res.data;
-    console.log(posts);
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < posts.length; i++) {
-      const msg = posts[i];
+  rbx.onWallPost(process.env.GROUP).on('data', async (data) => {
+    const user = Exile.find({}).select('RobloxUsername RobloxID Moderator Reason');
+    let check;
 
-      console.log(msg.body.includes('beans'));
+    (await user).forEach(async (player: any) => {
+      if (player.RobloxID === Object.values(data.poster)[0].userId) {
+        check = true;
 
-      blacklisted.forEach(async (word) => {
-        if (msg.body.includes(word)) {
-          // @ts-ignore
-          await rbx.deleteWallPost(process.env.GROUP, msg.id);
-          console.log(`Deleted post: ${msg.body}`);
-        }
-      });
-      //  console.log(`${msg.poster.displayName} said: ${msg.body}\nID: ${msg.id}`);
-    }
+        await rbx // @ts-ignore
+          .deleteWallPost(process.env.GROUP, data.id)
+          .then(() => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Post deleted!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${Object.values(data.poster)[0].username}'s post was deleted automatically by SaikouGroup**`)
+                .addField('Deleted Message:', data.body)
+                .addField('Deletion Reason:', `Player is permanently exiled from this group.`)
+                .setFooter(`Deleted Post Player ID: ${Object.values(data.poster)[0].userId} `)
+                .setTimestamp()
+            );
+          })
+          .catch((error) => {
+            console.log('There was an error deleting the wall post (exiled player post)!', error);
+          });
+      }
+    });
+
+    if (check === true) return;
+
+    blacklisted.forEach(async (word) => {
+      if (data.body.toLowerCase().includes(word)) {
+        await rbx // @ts-ignore
+          .deleteWallPost(process.env.GROUP, data.id)
+          .then(() => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Post deleted!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${Object.values(data.poster)[0].username}'s post was deleted automatically by SaikouGroup**`)
+                .addField('Deleted Message:', data.body)
+                .addField('Deletion Reason:', `Post included the word/phrase **${word}** which is blacklisted.`)
+                .setFooter(`Deleted Post Player ID: ${Object.values(data.poster)[0].userId} `)
+                .setTimestamp()
+            );
+          })
+          .catch((error) => {
+            console.log('There was an error deleting the wall post (blacklisted post)!', error);
+          });
+      }
+    });
+  });
+
+  // @ts-ignore
+  rbx.onWallPost(process.env.GROUP).on('error', (err) => {
+    console.log(`onWallPost event encountered an error!`, err);
   });
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
