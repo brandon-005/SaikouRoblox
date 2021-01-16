@@ -43,7 +43,7 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
-      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch((err) => console.log(err));
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch(() => console.log());
 
       if (rank !== 0) {
         await rbx // @ts-ignore
@@ -60,8 +60,8 @@ async function startApp() {
                 .setTimestamp()
             );
           })
-          .catch((error) => {
-            console.log('There was an error exiling the player!', error);
+          .catch(() => {
+            console.log();
           });
       }
     });
