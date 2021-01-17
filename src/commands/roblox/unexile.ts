@@ -36,11 +36,10 @@ export = {
       if (collectingRobloxName.first()!.content.toLowerCase() === 'cancel') {
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Unexile Cancelled!') //
+            .setTitle('✅ Unexile Cancelled!') //
             .setDescription(`The unexile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
       }
 
@@ -83,11 +82,10 @@ export = {
       } else {
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Unexile Cancelled!')
+            .setTitle('✅ Unexile Cancelled!')
             .setDescription(`The unexile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
       }
     } catch (e) {
@@ -96,7 +94,7 @@ export = {
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
       );
     }
   },

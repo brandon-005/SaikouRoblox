@@ -50,7 +50,14 @@ export = {
     try {
       RobloxID = await rbx.getIdFromUsername(RobloxName);
     } catch (e) {
-      return message.channel.send('Username was never inputted in time or you put in an incorrect user.');
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔍 Unable to find Roblox user!')
+          .setDescription(`Please provide a valid Roblox username to **suspend**!`)
+          .setColor('#f94343')
+          .setFooter('Ensure the capitalisation is correct!')
+          .setTimestamp()
+      );
     }
 
     try {
@@ -86,11 +93,24 @@ export = {
         const rankName = await rbx.getRankNameInGroup(process.env.GROUP, RobloxID);
 
         if (rankName === 'Guest') {
-          return message.channel.send('Please input a user who is still in the group.');
+          return message.channel.send(
+            new MessageEmbed() //
+              .setTitle('🔍 Unable to find Roblox player!')
+              .setDescription(`Please provide a valid Roblox username who is still in the group!`)
+              .setColor('#f94343')
+              .setFooter('Unable to find player')
+              .setTimestamp()
+          );
         }
 
         if (rankName === `${process.env.SUSPENDED_RANK}`) {
-          return message.channel.send('User is already suspended.');
+          return message.channel.send(
+            new MessageEmbed() //
+              .setTitle(`❌ Unable to suspend user`)
+              .setDescription(`The player you are trying to perform this action on is already suspended.`)
+              .setColor('#f94343')
+              .setFooter(`Unable to suspend user.`)
+          );
         }
 
         // @ts-ignore
@@ -119,14 +139,21 @@ export = {
             .setFooter('Suspension')
             .setTimestamp()
         );
-      } else return message.channel.send('Cancelled Suspension.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('✅ Suspension Cancelled!')
+            .setDescription(`The suspension has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+        );
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
       );
     }
   },

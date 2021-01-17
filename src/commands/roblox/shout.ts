@@ -36,11 +36,10 @@ export = {
       if (ShoutMessage!.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Shout Cancelled!')
+            .setTitle('✅ Shout Cancelled!')
             .setDescription(`The shout has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
 
       if (ShoutMessage!.content.length >= 255) {
@@ -72,14 +71,21 @@ export = {
             .setTimestamp()
             .setColor('#2ED85F')
         );
-      } else return message.channel.send('Cancelled Post.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('✅ Shout Cancelled!')
+            .setDescription(`The shout has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+        );
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
       );
     }
   },
