@@ -42,8 +42,9 @@ async function startApp() {
     const user = Exile.find({}).select('RobloxUsername RobloxID Moderator Reason');
 
     (await user).forEach(async (player: any) => {
-      // @ts-ignore
-      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch();
+      try {
+        // @ts-ignore
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID)
 
       if (rank !== 0) {
         await rbx // @ts-ignore
@@ -60,8 +61,11 @@ async function startApp() {
                 .setTimestamp()
             );
           })
-          .catch();
       }
+
+    } catch (err) {
+      return;
+    }
     });
   }
 
