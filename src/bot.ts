@@ -43,7 +43,7 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       // @ts-ignore
-      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch(() => console.log());
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID).catch();
 
       if (rank !== 0) {
         await rbx // @ts-ignore
@@ -60,9 +60,7 @@ async function startApp() {
                 .setTimestamp()
             );
           })
-          .catch(() => {
-            console.log();
-          });
+          .catch();
       }
     });
   }
