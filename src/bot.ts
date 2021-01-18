@@ -63,7 +63,7 @@ async function startApp() {
         }
       } catch (err) {
         return;
-      }
+    }
     });
   }
 
