@@ -6,15 +6,15 @@ export = {
     name: 'suspend',
     description: 'Suspend a Roblox user.',
     usage: '.suspend <RobloxUserID> <reason>',
-    accessableby: 'KICK_MEMBERS',
+    accessableby: 'MANAGE_MESSAGES',
     aliases: ['usersuspend', 'robloxsuspend'],
   },
   run: async (bot: any, message: Message) => {
-    if (!message.member!.hasPermission('KICK_MEMBERS')) {
+    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
+          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <MANAGE_MESSAGES>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -50,14 +50,7 @@ export = {
     try {
       RobloxID = await rbx.getIdFromUsername(RobloxName);
     } catch (e) {
-      return message.channel.send(
-        new MessageEmbed() //
-          .setTitle('🔍 Unable to find Roblox user!')
-          .setDescription(`Please provide a valid Roblox username to **suspend**!`)
-          .setColor('#f94343')
-          .setFooter('Ensure the capitalisation is correct!')
-          .setTimestamp()
-      );
+      return message.channel.send('Username was never inputted in time or you put in an incorrect user.');
     }
 
     try {
@@ -93,67 +86,44 @@ export = {
         const rankName = await rbx.getRankNameInGroup(process.env.GROUP, RobloxID);
 
         if (rankName === 'Guest') {
-          return message.channel.send(
-            new MessageEmbed() //
-              .setTitle('🔍 Unable to find Roblox player!')
-              .setDescription(`Please provide a valid Roblox username who is still in the group!`)
-              .setColor('#f94343')
-              .setFooter('Unable to find player')
-              .setTimestamp()
-          );
+          return message.channel.send('Please input a user who is still in the group.');
         }
 
         if (rankName === `${process.env.SUSPENDED_RANK}`) {
-          return message.channel.send(
-            new MessageEmbed() //
-              .setTitle(`❌ Unable to suspend user`)
-              .setDescription(`The player you are trying to perform this action on is already suspended.`)
-              .setColor('#f94343')
-              .setFooter(`Unable to suspend user.`)
-          );
+          return message.channel.send('User is already suspended.');
         }
 
         // @ts-ignore
         rbx.setRank(process.env.GROUP, RobloxID, 8);
 
-        // @ts-ignore
-        const thumbnail = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
-
         message.channel.send(
           new MessageEmbed() //
             .setTitle('✅ Success!')
             .setDescription(`You successfully suspended **${RobloxName}**.`)
-            .setFooter('Successful Suspension')
+            .setFooter('Successful Shout')
             .setTimestamp()
             .setColor('#2ED85F')
         );
 
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
-            .setAuthor(`Saikou Group | Suspension`, `${Object.values(thumbnail)[0].imageUrl}`)
+            .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
             .addField('User:', `${RobloxName}`, true)
             .addField('Moderator:', `<@${message.author.id}>`, true)
             .addField('Reason:', `${Reason}`)
-            .setThumbnail(`${Object.values(thumbnail)[0].imageUrl}`)
+            .setThumbnail(bot.user.displayAvatarURL())
             .setColor('#2ED85F')
             .setFooter('Suspension')
             .setTimestamp()
         );
-      } else
-        return message.channel.send(
-          new MessageEmbed() //
-            .setTitle('✅ Suspension Cancelled!')
-            .setDescription(`The suspension has been cancelled successfully.`)
-            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
-            .setColor('#2ED85F')
-        );
+      } else return message.channel.send('Cancelled Suspension.');
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
+          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },

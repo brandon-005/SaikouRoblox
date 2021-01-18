@@ -18,7 +18,6 @@
       "import/no-dynamic-require": "off",
       "consistent-return": "off",
       "import/no-unresolved": "off",
-      "import/extensions": "off",
-      "no-useless-return": "off"
+      "import/extensions": "off"
     }
   }
