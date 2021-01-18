@@ -69,7 +69,7 @@ async function startApp() {
 
   setInterval(ExileUsers, 7000);
 
-  const blacklisted = ['https://', 'have robux', 'me robux', 'pls robux'];
+  const blacklisted = ['https://', 'have robux', 'me robux', 'pls robux', 'free robux'];
 
   async function DeletePosts() {
     try {
