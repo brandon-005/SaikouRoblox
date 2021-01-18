@@ -6,15 +6,15 @@ export = {
     name: 'rankup',
     description: 'Rank a player up to the next rank in the group.',
     usage: '.rankup',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERSS',
     aliases: ['promote'],
   },
   run: async (bot: Client, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** rankup\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** rankup\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );

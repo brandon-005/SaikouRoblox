@@ -6,15 +6,15 @@ export = {
     name: 'unexile',
     description: 'Permanently exile a Roblox user.',
     usage: '.unexile <RobloxUserID> <reason>',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['removeexile'],
   },
   run: async (bot: any, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );

@@ -5,15 +5,15 @@ export = {
     name: 'robloxHelp',
     description: 'Help',
     usage: '.robloxHelp',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['rbxhelp', 'robloxhelp'],
   },
   run: async (bot: Client, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** robloxHelp\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** robloxHelp\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
