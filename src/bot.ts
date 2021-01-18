@@ -32,7 +32,8 @@ async function startApp() {
 
   await rbx.setCookie(`${cookie.RobloxToken}`);
 
-  console.log(`[SUCCESS]: Logged into the ${(await rbx.getCurrentUser()).UserName} Roblox account!`);
+  const currentUser = await rbx.getCurrentUser();
+  console.log(currentUser);
 
   setInterval(refreshCookie, 300000);
 
@@ -43,67 +44,32 @@ async function startApp() {
     (await user).forEach(async (player: any) => {
       try {
         // @ts-ignore
-        const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID);
+      const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID)
 
-        if (rank !== 0) {
-          await rbx // @ts-ignore
-            .exile(process.env.GROUP, player.RobloxID)
-            .then(() => {
-              bot.channels.cache.get(process.env.ADMIN_LOG).send(
-                new MessageEmbed() //
-                  .setTitle(`:warning: Automatic Exile!`)
-                  .setColor('#FFD62F')
-                  .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-                  .addField('Exile Giver:', `${player.Moderator}`, true)
-                  .addField('Exile Reason:', `${player.Reason}`, true)
-                  .setFooter(`Exiled Player ID: ${player.RobloxID} `)
-                  .setTimestamp()
-              );
-            });
-        }
-      } catch (err) {
-        return;
+      if (rank !== 0) {
+        await rbx // @ts-ignore
+          .exile(process.env.GROUP, player.RobloxID)
+          .then(() => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Automatic Exile!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
+                .addField('Exile Giver:', `${player.Moderator}`, true)
+                .addField('Exile Reason:', `${player.Reason}`, true)
+                .setFooter(`Exiled Player ID: ${player.RobloxID} `)
+                .setTimestamp()
+            );
+          })
+      }
+
+    } catch (err) {
+      return;
     }
     });
   }
 
   setInterval(ExileUsers, 7000);
-
-  const blacklisted = ['https://', 'have robux', 'me robux', 'pls robux', 'free robux'];
-
-  async function DeletePosts() {
-    try {
-      // @ts-ignore
-      rbx.getWall(process.env.GROUP, 'Desc', 10).then((WallPostPage) => {
-        const posts = WallPostPage.data;
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < posts.length; i++) {
-          const msg = posts[i];
-
-          blacklisted.forEach(async (word) => {
-            if (msg.body.toLowerCase().includes(word)) {
-              // @ts-ignore
-              await rbx.deleteWallPost(process.env.GROUP, msg.id);
-              bot.channels.cache.get(process.env.ADMIN_LOG).send(
-                new MessageEmbed() //
-                  .setTitle(`:warning: Post deleted!`)
-                  .setColor('#FFD62F')
-                  .setDescription(`**${Object.values(msg.poster)[0].username}'s post was deleted automatically by SaikouGroup**`)
-                  .addField('Deleted Message:', msg.body)
-                  .addField('Deletion Reason:', `Post included the word/phrase **${word}** which is blacklisted.`)
-                  .setFooter(`Deleted Post Player ID: ${Object.values(msg.poster)[0].userId} `)
-                  .setTimestamp()
-              );
-            }
-          });
-        }
-      });
-    } catch (err) {
-      return;
-    }
-  }
-
-  setInterval(DeletePosts, 120000);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
