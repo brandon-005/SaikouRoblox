@@ -7,15 +7,15 @@ export = {
     name: 'permexile',
     description: 'Permanently exile a Roblox user.',
     usage: '.exile <RobloxUserID> <reason>',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['permremove', 'robloxban', 'exile'],
   },
   run: async (bot: any, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -25,11 +25,10 @@ export = {
       if (msg.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Suspension Cancelled!') //
+            .setTitle('✅ Suspension Cancelled!') //
             .setDescription(`The suspension has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
     }
 
@@ -119,13 +118,16 @@ export = {
               .setTimestamp()
           );
 
+          // @ts-ignore
+          const thumbnail = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+
           await bot.channels.cache.get(process.env.MODERATION).send(
             new MessageEmbed() //
-              .setAuthor(`Saikou Group | Permanent Exile`, bot.user.displayAvatarURL())
+              .setAuthor(`Saikou Group | Permanent Exile`, `${Object.values(thumbnail)[0].imageUrl}`)
               .addField('User:', `${RobloxName}`, true)
               .addField('Moderator:', `<@${message.author.id}>`, true)
               .addField('Reason:', `${Reason}`)
-              .setThumbnail(bot.user.displayAvatarURL())
+              .setThumbnail(`${Object.values(thumbnail)[0].imageUrl}`)
               .setColor('#2ED85F')
               .setFooter('Exile')
               .setTimestamp()
@@ -134,11 +136,10 @@ export = {
       } else
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Exile Cancelled!')
+            .setTitle('✅ Exile Cancelled!')
             .setDescription(`The exile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
     } catch (e) {
       console.error(e);
@@ -147,7 +148,7 @@ export = {
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
       );
     }
   },

@@ -6,15 +6,15 @@ export = {
     name: 'shout',
     description: 'Roblox Shout',
     usage: '.prefix <prefix>',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['announce'],
   },
   run: async (bot: Client, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** shout\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** shout\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -36,11 +36,10 @@ export = {
       if (ShoutMessage!.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Shout Cancelled!')
+            .setTitle('✅ Shout Cancelled!')
             .setDescription(`The shout has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
 
       if (ShoutMessage!.content.length >= 255) {
@@ -72,14 +71,21 @@ export = {
             .setTimestamp()
             .setColor('#2ED85F')
         );
-      } else return message.channel.send('Cancelled Post.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('✅ Shout Cancelled!')
+            .setDescription(`The shout has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+        );
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
       );
     }
   },
