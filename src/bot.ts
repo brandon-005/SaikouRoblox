@@ -14,10 +14,10 @@ const bot: any = new Client({
 bot.commands = new Collection();
 bot.aliases = new Collection();
 
-['commands', 'aliases'].forEach((collection) => {
+['commands', 'aliases'].forEach((collection: string) => {
   bot[collection] = new Collection();
 });
-['loadCommands', 'loadEvents'].forEach((handlerFile) => require(`./handlers/${handlerFile}.js`)(bot));
+['loadCommands', 'loadEvents'].forEach((handlerFile: string) => require(`./handlers/${handlerFile}.js`)(bot));
 
 async function refreshCookie() {
   const cookieDatabase = await RobloxToken.findOne({ Test: process.env.RobloxTest });
@@ -42,48 +42,43 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       try {
-        // @ts-ignore
-        const rank = await rbx.getRankInGroup(process.env.GROUP, player.RobloxID);
+        const rank = await rbx.getRankInGroup((process.env.GROUP as unknown) as number, player.RobloxID);
 
         if (rank !== 0) {
-          await rbx // @ts-ignore
-            .exile(process.env.GROUP, player.RobloxID)
-            .then(() => {
-              bot.channels.cache.get(process.env.ADMIN_LOG).send(
-                new MessageEmbed() //
-                  .setTitle(`:warning: Automatic Exile!`)
-                  .setColor('#FFD62F')
-                  .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-                  .addField('Exile Giver:', `${player.Moderator}`, true)
-                  .addField('Exile Reason:', `${player.Reason}`, true)
-                  .setFooter(`Exiled Player ID: ${player.RobloxID} `)
-                  .setTimestamp()
-              );
-            });
+          await rbx.exile((process.env.GROUP as unknown) as number, player.RobloxID).then((): void => {
+            bot.channels.cache.get(process.env.ADMIN_LOG).send(
+              new MessageEmbed() //
+                .setTitle(`:warning: Automatic Exile!`)
+                .setColor('#FFD62F')
+                .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
+                .addField('Exile Giver:', `${player.Moderator}`, true)
+                .addField('Exile Reason:', `${player.Reason}`, true)
+                .setFooter(`Exiled Player ID: ${player.RobloxID} `)
+                .setTimestamp()
+            );
+          });
         }
       } catch (err) {
         return;
-    }
+      }
     });
   }
 
   setInterval(ExileUsers, 7000);
 
-  const blacklisted = ['https://', 'have robux', 'me robux', 'pls robux', 'free robux'];
+  const blacklisted: Array<string> = ['https://', 'have robux', 'me robux', 'pls robux', 'free robux'];
 
   async function DeletePosts() {
     try {
-      // @ts-ignore
-      rbx.getWall(process.env.GROUP, 'Desc', 10).then((WallPostPage) => {
+      rbx.getWall((process.env.GROUP as unknown) as number, 'Desc', 10).then((WallPostPage) => {
         const posts = WallPostPage.data;
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < posts.length; i++) {
+
+        for (let i = 0; i < posts.length; i += 1) {
           const msg = posts[i];
 
-          blacklisted.forEach(async (word) => {
+          blacklisted.forEach(async (word: string) => {
             if (msg.body.toLowerCase().includes(word)) {
-              // @ts-ignore
-              await rbx.deleteWallPost(process.env.GROUP, msg.id);
+              await rbx.deleteWallPost((process.env.GROUP as unknown) as number, msg.id);
               bot.channels.cache.get(process.env.ADMIN_LOG).send(
                 new MessageEmbed() //
                   .setTitle(`:warning: Post deleted!`)
