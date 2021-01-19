@@ -60,7 +60,18 @@ export = {
       );
     }
 
+    const RobloxRank = await rbx.getRankInGroup((process.env.GROUP as unknown) as number, RobloxID);
     const Player = await Exile.findOne({ RobloxID });
+
+    if (RobloxRank >= 50) {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle(`❌ Unable to exile user!`)
+          .setDescription(`The player you are trying to perform this action on cannot be exiled.`)
+          .setColor('#f94343')
+          .setFooter(`Unable to exile user.`)
+      );
+    }
 
     if (Player) {
       return message.channel.send(
