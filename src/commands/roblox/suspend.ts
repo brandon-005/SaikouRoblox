@@ -60,6 +60,19 @@ export = {
       );
     }
 
+    const rankName: string = await rbx.getRankNameInGroup((process.env.GROUP as unknown) as number, RobloxID);
+
+    if (rankName === 'Guest') {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔍 Unable to find Roblox player!')
+          .setDescription(`Please provide a Roblox player who is still in the group!`)
+          .setColor('#f94343')
+          .setFooter('Unable to find player')
+          .setTimestamp()
+      );
+    }
+
     try {
       message.channel.send(
         new MessageEmbed()
@@ -89,20 +102,6 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        // @ts-ignore
-        const rankName = await rbx.getRankNameInGroup(process.env.GROUP, RobloxID);
-
-        if (rankName === 'Guest') {
-          return message.channel.send(
-            new MessageEmbed() //
-              .setTitle('🔍 Unable to find Roblox player!')
-              .setDescription(`Please provide a valid Roblox username who is still in the group!`)
-              .setColor('#f94343')
-              .setFooter('Unable to find player')
-              .setTimestamp()
-          );
-        }
-
         if (rankName === `${process.env.SUSPENDED_RANK}`) {
           return message.channel.send(
             new MessageEmbed() //
@@ -113,11 +112,17 @@ export = {
           );
         }
 
-        // @ts-ignore
-        rbx.setRank(process.env.GROUP, RobloxID, 8);
-
-        // @ts-ignore
-        const thumbnail = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+        try {
+          await rbx.setRank((process.env.GROUP as unknown) as number, RobloxID, 8);
+        } catch (err) {
+          return message.channel.send(
+            new MessageEmbed() //
+              .setTitle(`❌ Unable to suspend user!`)
+              .setDescription(`The player you are trying to perform this action on cannot be suspended.`)
+              .setColor('#f94343')
+              .setFooter(`Unable to suspend user.`)
+          );
+        }
 
         message.channel.send(
           new MessageEmbed() //
@@ -128,13 +133,16 @@ export = {
             .setColor('#2ED85F')
         );
 
+        // @ts-ignore
+        const robloxAvatar = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
-            .setAuthor(`Saikou Group | Suspension`, `${Object.values(thumbnail)[0].imageUrl}`)
+            .setAuthor(`Saikou Group | Suspension`, `${Object.values(robloxAvatar)[0].imageUrl}`)
             .addField('User:', `${RobloxName}`, true)
             .addField('Moderator:', `<@${message.author.id}>`, true)
             .addField('Reason:', `${Reason}`)
-            .setThumbnail(`${Object.values(thumbnail)[0].imageUrl}`)
+            .setThumbnail(`${Object.values(robloxAvatar)[0].imageUrl}`)
             .setColor('#2ED85F')
             .setFooter('Suspension')
             .setTimestamp()
