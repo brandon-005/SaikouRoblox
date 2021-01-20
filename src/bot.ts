@@ -42,10 +42,10 @@ async function startApp() {
 
     (await user).forEach(async (player: any) => {
       try {
-        const rank = await rbx.getRankInGroup((process.env.GROUP as unknown) as number, player.RobloxID);
+        const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
 
         if (rank !== 0) {
-          await rbx.exile((process.env.GROUP as unknown) as number, player.RobloxID).then((): void => {
+          await rbx.exile(Number(process.env.GROUP), player.RobloxID).then((): void => {
             bot.channels.cache.get(process.env.ADMIN_LOG).send(
               new MessageEmbed() //
                 .setTitle(`:warning: Automatic Exile!`)
@@ -70,7 +70,7 @@ async function startApp() {
 
   async function DeletePosts() {
     try {
-      rbx.getWall((process.env.GROUP as unknown) as number, 'Desc', 10).then((WallPostPage) => {
+      rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then((WallPostPage) => {
         const posts = WallPostPage.data;
 
         for (let i = 0; i < posts.length; i += 1) {
@@ -78,7 +78,7 @@ async function startApp() {
 
           blacklisted.forEach(async (word: string) => {
             if (msg.body.toLowerCase().includes(word)) {
-              await rbx.deleteWallPost((process.env.GROUP as unknown) as number, msg.id);
+              await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
               bot.channels.cache.get(process.env.ADMIN_LOG).send(
                 new MessageEmbed() //
                   .setTitle(`:warning: Post deleted!`)
