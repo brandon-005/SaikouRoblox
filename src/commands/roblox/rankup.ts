@@ -60,7 +60,7 @@ export = {
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to rankup the user.\n\n❓ **Are the following fields correct for the rankup?**\n\n• \`Roblox username\` - **${RobloxName}**\n\nIf the fields above look correct you can rankup this user by reacting with a ✅ or cancel the rankup with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to rankup the user.\n\n❓ **Are the following fields correct for the rankup?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n\nIf the fields above look correct you can rankup this user by reacting with a ✅ or cancel the rankup with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -72,14 +72,13 @@ export = {
 
       if (ConfirmationResult === '✅') {
         try {
-          // @ts-ignore
-          await rbx.changeRank(process.env.GROUP, RobloxID, 1).then(
+          await rbx.changeRank(Number(process.env.GROUP), RobloxID, 1).then(
             async (): Promise<void> => {
               message.channel.send(
                 new MessageEmbed() //
                   .setTitle('✅ Success!')
-                  .setColor('#2ED85F') // @ts-ignore
-                  .setDescription(`You successfully ranked up **${RobloxName}** to **${await rbx.getRankNameInGroup(process.env.GROUP, RobloxID)}**`)
+                  .setColor('#2ED85F')
+                  .setDescription(`You successfully ranked up **${RobloxName}** to **${await rbx.getRankNameInGroup(Number(process.env.GROUP), RobloxID)}**`)
                   .setTimestamp()
               );
             }

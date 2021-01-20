@@ -60,7 +60,7 @@ export = {
       );
     }
 
-    const RobloxRank = await rbx.getRankInGroup((process.env.GROUP as unknown) as number, RobloxID);
+    const RobloxRank = await rbx.getRankInGroup(Number(process.env.GROUP), RobloxID);
     const Player = await Exile.findOne({ RobloxID });
 
     if (RobloxRank >= 50) {
@@ -101,7 +101,7 @@ export = {
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to permanently suspend the user.\n\n❓ **Are the following fields correct for the exile?**\n\n• \`Roblox username\` - **${RobloxName}**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to permanently suspend the user.\n\n❓ **Are the following fields correct for the exile?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
