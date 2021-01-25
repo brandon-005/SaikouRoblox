@@ -126,7 +126,7 @@ export = {
             .setColor('#2ED85F')
         );
 
-        const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'jpeg', false);
+        const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'png', false);
 
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
