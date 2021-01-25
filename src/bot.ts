@@ -32,7 +32,7 @@ async function startApp() {
 
   await rbx.setCookie(`${cookie.RobloxToken}`);
 
-  console.log(`[SUCCESS]: Logged into the ${(await rbx.getCurrentUser()).UserName} Roblox account!`);
+  console.log(`[SUCCESS]: Logged into the "${(await rbx.getCurrentUser()).UserName}" Roblox account!`);
 
   setInterval(refreshCookie, 300000);
 
