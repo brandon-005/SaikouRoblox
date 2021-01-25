@@ -129,16 +129,15 @@ export = {
               .setTimestamp()
           );
 
-          // @ts-ignore
-          const thumbnail = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+          const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'jpeg', false);
 
           await bot.channels.cache.get(process.env.MODERATION).send(
             new MessageEmbed() //
-              .setAuthor(`Saikou Group | Permanent Exile`, `${Object.values(thumbnail)[0].imageUrl}`)
+              .setAuthor(`Saikou Group | Permanent Exile`, `${Object.values(robloxAvatar)[0].imageUrl}`)
               .addField('User:', `${RobloxName}`, true)
               .addField('Moderator:', `<@${message.author.id}>`, true)
               .addField('Reason:', `${Reason}`)
-              .setThumbnail(`${Object.values(thumbnail)[0].imageUrl}`)
+              .setThumbnail(`${Object.values(robloxAvatar)[0].imageUrl}`)
               .setColor('#2ED85F')
               .setFooter('Exile')
               .setTimestamp()

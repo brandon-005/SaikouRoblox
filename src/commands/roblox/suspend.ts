@@ -133,8 +133,7 @@ export = {
             .setColor('#2ED85F')
         );
 
-        // @ts-ignore
-        const robloxAvatar = await rbx.getPlayerThumbnail({ userIds: RobloxID, size: 250, format: 'png', isCircular: false });
+        const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'jpeg', false);
 
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
