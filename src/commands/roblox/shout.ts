@@ -50,7 +50,7 @@ export = {
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nThis shout will replace the following shout posted: \n**${(await rbx.getShout((process.env.GROUP as unknown) as number)).body}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -61,8 +61,7 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        // @ts-ignore
-        rbx.shout(process.env.GROUP, `${ShoutMessage}`);
+        rbx.shout(Number(process.env.GROUP), `${ShoutMessage}`);
 
         message.channel.send(
           new MessageEmbed() //

@@ -53,6 +53,19 @@ export = {
       return message.channel.send('Username was never inputted in time or you put in an incorrect user.');
     }
 
+    const rankName: string = await rbx.getRankNameInGroup(Number(process.env.GROUP), RobloxID);
+
+    if (rankName === 'Guest') {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔍 Unable to find Roblox player!')
+          .setDescription(`Please provide a Roblox player who is still in the group!`)
+          .setColor('#f94343')
+          .setFooter('Unable to find player')
+          .setTimestamp()
+      );
+    }
+
     try {
       message.channel.send(
         new MessageEmbed()
@@ -71,7 +84,7 @@ export = {
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to suspend the user.\n\n❓ **Are the following fields correct for the suspension?**\n\n• \`Roblox username\` - **${RobloxName}**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to suspend the user.\n\n❓ **Are the following fields correct for the suspension?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -82,19 +95,27 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        // @ts-ignore
-        const rankName = await rbx.getRankNameInGroup(process.env.GROUP, RobloxID);
-
-        if (rankName === 'Guest') {
-          return message.channel.send('Please input a user who is still in the group.');
-        }
-
         if (rankName === `${process.env.SUSPENDED_RANK}`) {
-          return message.channel.send('User is already suspended.');
+          return message.channel.send(
+            new MessageEmbed() //
+              .setTitle(`❌ Unable to suspend user`)
+              .setDescription(`The player you are trying to perform this action on is already suspended.`)
+              .setColor('#f94343')
+              .setFooter(`Unable to suspend user.`)
+          );
         }
 
-        // @ts-ignore
-        rbx.setRank(process.env.GROUP, RobloxID, 8);
+        try {
+          await rbx.setRank(Number(process.env.GROUP), RobloxID, 8);
+        } catch (err) {
+          return message.channel.send(
+            new MessageEmbed() //
+              .setTitle(`❌ Unable to suspend user!`)
+              .setDescription(`The player you are trying to perform this action on cannot be suspended.`)
+              .setColor('#f94343')
+              .setFooter(`Unable to suspend user.`)
+          );
+        }
 
         message.channel.send(
           new MessageEmbed() //
@@ -105,13 +126,15 @@ export = {
             .setColor('#2ED85F')
         );
 
+        const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'jpeg', false);
+
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
-            .setAuthor(`Saikou Group | Suspension`, bot.user.displayAvatarURL())
+            .setAuthor(`Saikou Group | Suspension`, `${Object.values(robloxAvatar)[0].imageUrl}`)
             .addField('User:', `${RobloxName}`, true)
             .addField('Moderator:', `<@${message.author.id}>`, true)
             .addField('Reason:', `${Reason}`)
-            .setThumbnail(bot.user.displayAvatarURL())
+            .setThumbnail(`${Object.values(robloxAvatar)[0].imageUrl}`)
             .setColor('#2ED85F')
             .setFooter('Suspension')
             .setTimestamp()
