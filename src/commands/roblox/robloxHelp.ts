@@ -27,8 +27,8 @@ export = {
           `The prefix for SaikouRoblox is \`.\`
 			Throwback to SaikouBot v1, entering the nostalgia zone`
         )
-        .addField('General - 1', '`shout`')
-        .addField('Moderation - 2', '`suspend`, `permexile`')
+        .addField('General - 2', '`shout`, `rankup`')
+        .addField('Moderation - 3', '`suspend`, `permexile` `unexile`')
         .setFooter("Keep up your hard work, it's much appreciated!")
     );
   },
