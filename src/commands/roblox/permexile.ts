@@ -7,15 +7,15 @@ export = {
     name: 'permexile',
     description: 'Permanently exile a Roblox user.',
     usage: '.exile <RobloxUserID> <reason>',
-    accessableby: 'KICK_MEMBERS',
+    accessableby: 'MANAGE_MESSAGES',
     aliases: ['permremove', 'robloxban', 'exile'],
   },
   run: async (bot: any, message: Message) => {
-    if (!message.member!.hasPermission('KICK_MEMBERS')) {
+    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
+          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <MANAGE_MESSAGES>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -25,10 +25,11 @@ export = {
       if (msg.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('✅ Suspension Cancelled!') //
+            .setTitle('Suspension Cancelled!') //
             .setDescription(`The suspension has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
         );
     }
 
@@ -146,10 +147,11 @@ export = {
       } else
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('✅ Exile Cancelled!')
+            .setTitle('Exile Cancelled!')
             .setDescription(`The exile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
         );
     } catch (e) {
       console.error(e);
@@ -158,7 +160,7 @@ export = {
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setFooter("Prompt wasn't filled in within 2 mins", message.author.displayAvatarURL())
+          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },
