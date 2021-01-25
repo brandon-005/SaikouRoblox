@@ -78,7 +78,11 @@ async function startApp() {
 
           blacklisted.forEach(async (word: string) => {
             if (msg.body.toLowerCase().includes(word)) {
-              await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
+              try {
+                await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
+              } catch (err) {
+                return;
+              }
               bot.channels.cache.get(process.env.ADMIN_LOG).send(
                 new MessageEmbed() //
                   .setTitle(`:warning: Post deleted!`)
