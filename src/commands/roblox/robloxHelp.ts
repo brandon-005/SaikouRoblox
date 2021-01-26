@@ -5,15 +5,15 @@ export = {
     name: 'robloxHelp',
     description: 'Help',
     usage: '.robloxHelp',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['rbxhelp', 'robloxhelp'],
   },
   run: async (bot: Client, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** robloxHelp\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** robloxHelp\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -27,8 +27,9 @@ export = {
           `The prefix for SaikouRoblox is \`.\`
 			Throwback to SaikouBot v1, entering the nostalgia zone`
         )
-        .addField('General - 2', '`shout`, `rankup`')
+        .addField('General - 3', '`shout`, `rankup`, `listwords`')
         .addField('Moderation - 3', '`suspend`, `permexile` `unexile`')
+        .addField('Management - 2', '`blacklist`, `removeBlacklist`')
         .setFooter("Keep up your hard work, it's much appreciated!")
     );
   },
