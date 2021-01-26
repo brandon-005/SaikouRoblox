@@ -3,6 +3,7 @@ import { Client, Collection, MessageEmbed } from 'discord.js';
 import dotenv from 'dotenv';
 import RobloxToken from './models/token';
 import Exile from './models/userExile';
+import Words from './models/wordOrPhrase';
 
 dotenv.config();
 
@@ -66,21 +67,21 @@ async function startApp() {
 
   setInterval(ExileUsers, 7000);
 
-  const blacklisted: Array<string> = ['https://', 'have robux', 'me robux', 'pls robux', 'free robux'];
-
   async function DeletePosts() {
     try {
-      rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then((WallPostPage) => {
+      rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then(async (WallPostPage) => {
         const posts = WallPostPage.data;
+        const blacklisted = await Words.find({}).select('content');
 
         for (let i = 0; i < posts.length; i += 1) {
           const msg = posts[i];
 
-          blacklisted.forEach(async (word: string) => {
-            if (msg.body.toLowerCase().includes(word)) {
+          blacklisted.forEach(async (word: any) => {
+            if (msg.body.toLowerCase().includes(word.content)) {
               try {
                 await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
               } catch (err) {
+                console.log(err);
                 return;
               }
               bot.channels.cache.get(process.env.ADMIN_LOG).send(
@@ -89,7 +90,7 @@ async function startApp() {
                   .setColor('#FFD62F')
                   .setDescription(`**${Object.values(msg.poster)[0].username}'s post was deleted automatically by SaikouGroup**`)
                   .addField('Deleted Message:', msg.body)
-                  .addField('Deletion Reason:', `Post included the word/phrase **${word}** which is blacklisted.`)
+                  .addField('Deletion Reason:', `Post included the word/phrase **${word.content}** which is blacklisted.`)
                   .setFooter(`Deleted Post Player ID: ${Object.values(msg.poster)[0].userId} `)
                   .setTimestamp()
               );
