@@ -11,6 +11,10 @@ export = {
     aliases: ['permremove', 'robloxban', 'exile'],
   },
   run: async (bot: any, message: Message) => {
+    let modName = message.guild!.member(message.author)?.nickname;
+
+    if (modName === null) modName = message.author.username;
+
     if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
@@ -115,7 +119,7 @@ export = {
       if (ConfirmationResult === '✅') {
         if (!Player) {
           const newSettings = await Exile.create({
-            Moderator: message.author.username,
+            Moderator: modName,
             Reason: `${Reason}`,
             RobloxUsername: `${RobloxName}`,
             RobloxID,
