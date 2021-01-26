@@ -38,10 +38,10 @@ async function startApp() {
   setInterval(refreshCookie, 300000);
 
   // -- Removing user who's supposed to be exiled
-  async function ExileUsers() {
+  async function ExileUsers(): Promise<void> {
     const user = Exile.find({}).select('RobloxUsername RobloxID Moderator Reason');
 
-    (await user).forEach(async (player: any) => {
+    (await user).forEach(async (player: { RobloxID: any; RobloxUsername: String; Moderator: String; Reason: String }) => {
       try {
         const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
 
@@ -67,7 +67,7 @@ async function startApp() {
 
   setInterval(ExileUsers, 7000);
 
-  async function DeletePosts() {
+  async function DeletePosts(): Promise<void> {
     try {
       rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then(async (WallPostPage) => {
         const posts = WallPostPage.data;
