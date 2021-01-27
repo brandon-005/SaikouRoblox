@@ -19,7 +19,7 @@ export = {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
+          .setDescription('**Command Name:** permexile\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -29,11 +29,10 @@ export = {
       if (msg.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Suspension Cancelled!') //
-            .setDescription(`The suspension has been cancelled successfully.`)
+            .setTitle('✅ Exile Cancelled!') //
+            .setDescription(`The exile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
     }
 
@@ -81,7 +80,7 @@ export = {
     if (Player) {
       return message.channel.send(
         new MessageEmbed() //
-          .setTitle(`❌ Unable to exile user`)
+          .setTitle(`🚫 Already Exiled!`)
           .setDescription(`The user you are trying to perform this action on is already exiled.`)
           .setColor('#f94343')
           .setFooter(`Unable to exile user.`)
@@ -151,11 +150,10 @@ export = {
       } else
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Exile Cancelled!')
+            .setTitle('✅ Exile Cancelled!')
             .setDescription(`The exile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
     } catch (e) {
       console.error(e);
@@ -164,7 +162,6 @@ export = {
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },

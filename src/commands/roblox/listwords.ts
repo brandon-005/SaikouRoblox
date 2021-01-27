@@ -10,6 +10,16 @@ export = {
     aliases: ['listblacklisted'],
   },
   run: async (bot: Client, message: Message) => {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle('🔐 Incorrect Permissions')
+          .setDescription('**Command Name:** listwords\n**Permissions Needed:** <KICK_MEMBERS>')
+          .setColor('#f94343')
+          .setFooter('<> - Staff Perms ● Public Perms - [] ')
+      );
+    }
+
     const allWords = await words.find({}).select('content');
 
     let listWords: any = [];

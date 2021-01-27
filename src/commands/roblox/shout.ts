@@ -36,15 +36,20 @@ export = {
       if (ShoutMessage!.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Shout Cancelled!')
+            .setTitle('✅ Shout Cancelled!')
             .setDescription(`The shout has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
 
       if (ShoutMessage!.content.length >= 255) {
-        return message.channel.send('You must post a shout that contains 255 characters or less, please re-run the setup.');
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle(`❌ Unable to post shout!`)
+            .setDescription(`Your shout went over the character limit of \`255\` characters.`)
+            .setColor('#f94343')
+            .setFooter(`Please try again, cut down on the characters!`)
+        );
       }
 
       const confirm = await message.channel.send(
@@ -71,14 +76,21 @@ export = {
             .setTimestamp()
             .setColor('#2ED85F')
         );
-      } else return message.channel.send('Cancelled Post.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('✅ Shout Cancelled!')
+            .setDescription(`The shout has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
+        );
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },
