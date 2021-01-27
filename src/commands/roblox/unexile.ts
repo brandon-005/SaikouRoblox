@@ -14,7 +14,7 @@ export = {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** suspend\n**Permissions Needed:** <KICK_MEMBERS>')
+          .setDescription('**Command Name:** unexile\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -30,13 +30,13 @@ export = {
           .setThumbnail(bot.user!.displayAvatarURL())
       );
 
-      const collectingRobloxName = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
-      const RobloxName: any = collectingRobloxName.first()?.toString();
+      const collectingRobloxName: any = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
+      const RobloxName: string = collectingRobloxName.first()?.toString();
 
       if (collectingRobloxName.first()!.content.toLowerCase() === 'cancel') {
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Unexile Cancelled!') //
+            .setTitle('✅ Unexile Cancelled!') //
             .setDescription(`The unexile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
@@ -44,7 +44,8 @@ export = {
         );
       }
 
-      const player = await Exile.findOne({ RobloxUsername: RobloxName });
+      // @ts-ignore
+      const player = await Exile.findOne({ RobloxUsername: new RegExp(RobloxName, 'i') });
 
       if (!player) {
         return message.channel.send(
@@ -71,7 +72,7 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        Exile.deleteOne({ RobloxUsername: RobloxName }).then(() => {
+        Exile.deleteOne({ RobloxUsername: new RegExp(RobloxName, 'i') }).then(() => {
           message.channel.send(
             new MessageEmbed() //
               .setTitle('✅ User Removed!')
@@ -83,11 +84,10 @@ export = {
       } else {
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Unexile Cancelled!')
+            .setTitle('✅ Unexile Cancelled!')
             .setDescription(`The unexile has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
       }
     } catch (e) {
@@ -96,7 +96,6 @@ export = {
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },
