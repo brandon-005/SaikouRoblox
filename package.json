@@ -1,6 +1,6 @@
 {
   "name": "saikouroblox",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Interacting with the Roblox API to create helpful solutions to issues currently faced on Roblox groups.",
   "main": "dist/bot.js",
   "scripts": {
