@@ -9,5 +9,5 @@ export = (bot: any) => {
       bot.on(eventName, event.bind(null, bot));
     });
   };
-  ['bot', 'commandHandler', 'database'].forEach((folder) => load(folder));
+  ['bot', 'commandHandler', 'database', 'discordServer'].forEach((folder) => load(folder));
 };

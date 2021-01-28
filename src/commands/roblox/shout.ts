@@ -6,15 +6,15 @@ export = {
     name: 'shout',
     description: 'Roblox Shout',
     usage: '.prefix <prefix>',
-    accessableby: 'MANAGE_MESSAGES',
+    accessableby: 'KICK_MEMBERS',
     aliases: ['announce'],
   },
   run: async (bot: Client, message: Message) => {
-    if (!message.member!.hasPermission('MANAGE_MESSAGES')) {
+    if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('🔐 Incorrect Permissions')
-          .setDescription('**Command Name:** shout\n**Permissions Needed:** <MANAGE_MESSAGES>')
+          .setDescription('**Command Name:** shout\n**Permissions Needed:** <KICK_MEMBERS>')
           .setColor('#f94343')
           .setFooter('<> - Staff Perms ● Public Perms - [] ')
       );
@@ -36,21 +36,26 @@ export = {
       if (ShoutMessage!.content.toLowerCase() === 'cancel')
         return message.channel.send(
           new MessageEmbed() //
-            .setTitle('Shout Cancelled!')
+            .setTitle('✅ Shout Cancelled!')
             .setDescription(`The shout has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
 
       if (ShoutMessage!.content.length >= 255) {
-        return message.channel.send('You must post a shout that contains 255 characters or less, please re-run the setup.');
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle(`❌ Unable to post shout!`)
+            .setDescription(`Your shout went over the character limit of \`255\` characters.`)
+            .setColor('#f94343')
+            .setFooter(`Please try again, cut down on the characters!`)
+        );
       }
 
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nThis shout will replace the following shout posted: \n**${(await rbx.getShout((process.env.GROUP as unknown) as number)).body}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nThis shout will replace the following shout posted: \n**${(await rbx.getShout(Number(process.env.GROUP))).body}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -71,14 +76,21 @@ export = {
             .setTimestamp()
             .setColor('#2ED85F')
         );
-      } else return message.channel.send('Cancelled Post.');
+      } else
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle('✅ Shout Cancelled!')
+            .setDescription(`The shout has been cancelled successfully.`)
+            .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
+            .setColor('#2ED85F')
+            .setThumbnail(bot.user!.displayAvatarURL())
+        );
     } catch (e) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle('⏱ Out of time!')
           .setDescription('You ran out of time to input the prompt answer!')
           .setColor('#f94343')
-          .setThumbnail(message.author.displayAvatarURL())
       );
     }
   },
