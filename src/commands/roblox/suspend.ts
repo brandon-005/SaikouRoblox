@@ -1,11 +1,13 @@
 import { Message, MessageEmbed } from 'discord.js';
 import rbx from 'noblox.js';
+import ms from 'ms';
+import timeData from '../../models/suspendTimes';
 
 export = {
   config: {
     name: 'suspend',
     description: 'Suspend a Roblox user.',
-    usage: '.suspend <RobloxUserID> <reason>',
+    usage: '.suspend',
     accessableby: 'KICK_MEMBERS',
     aliases: ['usersuspend', 'robloxsuspend'],
   },
@@ -34,7 +36,7 @@ export = {
 
     message.channel.send(
       new MessageEmbed()
-        .setTitle('Prompt [1/2]') //
+        .setTitle('Prompt [1/3]') //
         .setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to suspend a user.\n\n❓ **What is the Roblox username of the person you would like to suspend?**\n\nInput **cancel** to cancel the suspend prompt.`)
         .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
         .setColor('#7289DA')
@@ -66,10 +68,20 @@ export = {
       );
     }
 
+    if (rankName === `${process.env.SUSPENDED_RANK}`) {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle(`❌ Unable to suspend user`)
+          .setDescription(`The player you are trying to perform this action on is already suspended.`)
+          .setColor('#f94343')
+          .setFooter(`Unable to suspend user.`)
+      );
+    }
+
     try {
       message.channel.send(
         new MessageEmbed()
-          .setTitle('Prompt [2/2]') //
+          .setTitle('Prompt [2/3]') //
           .setDescription(`Please follow the instructions provided to suspend a user.\n\n❓ **What is the reason for suspending this user?**\n\nInput **cancel** to cancel the suspend prompt.`)
           .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
           .setColor('#7289DA')
@@ -81,10 +93,34 @@ export = {
 
       if (cancel(Reason)) return;
 
+      message.channel.send(
+        new MessageEmbed()
+          .setTitle('Prompt [2/3]') //
+          .setDescription(`Please follow the instructions provided to suspend a user.\n\n❓ **How long would you like to suspend this player for?**\n\nInput **cancel** to cancel the suspend prompt.`)
+          .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
+          .setColor('#7289DA')
+          .setThumbnail(bot.user!.displayAvatarURL())
+      );
+
+      const collectingDuration = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
+      const Duration: any = collectingDuration.first()?.toString();
+
+      if (cancel(collectingDuration.first())) return;
+
+      if (!ms(Duration)) {
+        return message.channel.send(
+          new MessageEmbed() //
+            .setColor('#f94343')
+            .setTitle('⏱️ Supply a time!')
+            .setDescription(`Please supply a correct time for the suspension.`)
+            .setFooter('h - Hours ● Days - d')
+        );
+      }
+
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to suspend the user.\n\n❓ **Are the following fields correct for the suspension?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to suspend the user.\n\n❓ **Are the following fields correct for the suspension?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n• \`Duration\` - **${ms(ms(Duration))}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -95,48 +131,53 @@ export = {
       const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
       if (ConfirmationResult === '✅') {
-        if (rankName === `${process.env.SUSPENDED_RANK}`) {
-          return message.channel.send(
-            new MessageEmbed() //
-              .setTitle(`❌ Unable to suspend user`)
-              .setDescription(`The player you are trying to perform this action on is already suspended.`)
-              .setColor('#f94343')
-              .setFooter(`Unable to suspend user.`)
-          );
-        }
+        const suspendTime = await timeData.findOne({ RobloxID });
 
-        try {
-          await rbx.setRank(Number(process.env.GROUP), RobloxID, 8);
-        } catch (err) {
-          return message.channel.send(
-            new MessageEmbed() //
-              .setTitle(`❌ Unable to suspend user!`)
-              .setDescription(`The player you are trying to perform this action on cannot be suspended.`)
-              .setColor('#f94343')
-              .setFooter(`Unable to suspend user.`)
-          );
-        }
+        if (!suspendTime) {
+          const newTime = await timeData.create({
+            RobloxName,
+            RobloxID,
+            timestamp: new Date(),
+            Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), RobloxID),
+            Duration: ms(Duration),
+          });
 
-        message.channel.send(
-          new MessageEmbed() //
-            .setTitle('✅ Success!')
-            .setDescription(`You successfully suspended **${RobloxName}**.`)
-            .setFooter('Successful Shout')
-            .setTimestamp()
-            .setColor('#2ED85F')
-        );
+          await newTime.save();
+
+          try {
+            await rbx.setRank(Number(process.env.GROUP), RobloxID, 8);
+          } catch (err) {
+            console.log(err);
+            return message.channel.send(
+              new MessageEmbed() //
+                .setTitle(`❌ Unable to suspend user!`)
+                .setDescription(`The player you are trying to perform this action on cannot be suspended.`)
+                .setColor('#f94343')
+                .setFooter(`Unable to suspend user.`)
+            );
+          }
+
+          message.channel.send(
+            new MessageEmbed() //
+              .setTitle('✅ Success!')
+              .setDescription(`You successfully suspended **${RobloxName}**.`)
+              .setFooter('Successful Suspension')
+              .setTimestamp()
+              .setColor('#2ED85F')
+          );
+        } else return message.channel.send('This player is already suspended.');
 
         const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'png', false);
 
         await bot.channels.cache.get(process.env.MODERATION).send(
           new MessageEmbed() //
-            .setAuthor(`Saikou Group | Suspension`, `${Object.values(robloxAvatar)[0].imageUrl}`)
+            .setAuthor(`Saikou Group | ${ms(ms(Duration))} Suspension`, `${Object.values(robloxAvatar)[0].imageUrl}`)
             .addField('User:', `${RobloxName}`, true)
             .addField('Moderator:', `<@${message.author.id}>`, true)
             .addField('Reason:', `${Reason}`)
             .setThumbnail(`${Object.values(robloxAvatar)[0].imageUrl}`)
             .setColor('#2ED85F')
-            .setFooter('Suspension')
+            .setFooter(`${ms(ms(Duration))} Suspension`)
             .setTimestamp()
         );
       } else return message.channel.send('Cancelled Suspension.');
