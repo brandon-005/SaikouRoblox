@@ -70,7 +70,7 @@ async function startApp() {
 
   async function DeletePosts(): Promise<void> {
     try {
-      rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then(async (WallPostPage) => {
+      rbx.getWall(Number(process.env.GROUP), 'Desc', 25).then(async (WallPostPage) => {
         const posts = WallPostPage.data;
         const blacklisted = await Words.find({}).select('content');
 
@@ -82,7 +82,6 @@ async function startApp() {
               try {
                 await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
               } catch (err) {
-                console.log(err);
                 return;
               }
               bot.channels.cache.get(process.env.ADMIN_LOG).send(
