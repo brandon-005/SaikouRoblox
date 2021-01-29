@@ -9,5 +9,5 @@ export = (bot: any) => {
       if (command.config.aliases) command.config.aliases.forEach((alias: any) => bot.aliases.set(alias, command.config.name));
     });
   };
-  ['roblox'].forEach((folder) => load(folder));
+  ['configuration', 'general', 'moderation'].forEach((folder) => load(folder));
 };

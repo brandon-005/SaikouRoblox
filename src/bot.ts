@@ -39,14 +39,43 @@ async function startApp() {
 
   setInterval(refreshCookie, 300000);
 
-  // -- Removing user who's supposed to be exiled
-  async function ExileUsers(): Promise<void> {
+  async function SuspendAndExile(): Promise<void> {
+    const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
     const user = Exile.find({}).select('RobloxUsername RobloxID Moderator Reason');
+    let rank: number;
+
+    /* --- Suspending --- */
+    (await data).forEach(async (player) => {
+      /* --- If suspended and time hasn't expired --- */
+      if (player.timestamp.getTime() + player.Duration > Date.now()) {
+        try {
+          rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
+
+          if (rank !== 0) {
+            if (rank !== 8) await rbx.setRank(Number(process.env.GROUP), player.RobloxID, 8);
+          }
+        } catch (err) {
+          return;
+        }
+      } else {
+        // -- Reranking player and removing document ---
+        bot.channels.cache.get(process.env.ADMIN_LOG).send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Suspension Expired!`)
+            .setColor('#7289DA')
+            .setDescription(`**${player.RobloxName}'s suspension has concluded.**`)
+            .setFooter(`Suspended Player ID: ${player.RobloxID} `)
+            .setTimestamp()
+        );
+
+        await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+
+        await timedata.deleteOne({ RobloxID: player.RobloxID });
+      }
+    });
 
     (await user).forEach(async (player: { RobloxID: any; RobloxUsername: String; Moderator: String; Reason: String }) => {
       try {
-        const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
-
         if (rank !== 0) {
           await rbx.exile(Number(process.env.GROUP), player.RobloxID).then((): void => {
             bot.channels.cache.get(process.env.ADMIN_LOG).send(
@@ -67,7 +96,7 @@ async function startApp() {
     });
   }
 
-  setInterval(ExileUsers, 7000);
+  setInterval(SuspendAndExile, 7000);
 
   async function DeletePosts(): Promise<void> {
     try {
@@ -107,40 +136,40 @@ async function startApp() {
 
   setInterval(DeletePosts, 120000);
 
-  async function Suspend(): Promise<void> {
-    const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
+  // async function Suspend(): Promise<void> {
+  //   const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
 
-    (await data).forEach(async (player) => {
-      // -- Checking if player is still suspended if time has not expired ---
-      if (player.timestamp.getTime() + player.Duration > Date.now()) {
-        try {
-          const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
+  //   (await data).forEach(async (player) => {
+  //     // -- Checking if player is still suspended if time has not expired ---
+  //     if (player.timestamp.getTime() + player.Duration > Date.now()) {
+  //       try {
+  //         const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
 
-          if (rank !== 0) {
-            if (rank !== 8) await rbx.setRank(Number(process.env.GROUP), player.RobloxID, 8);
-          }
-        } catch (err) {
-          return;
-        }
-      } else {
-        // -- Reranking player and removing document ---
-        bot.channels.cache.get(process.env.ADMIN_LOG).send(
-          new MessageEmbed() //
-            .setTitle(`:warning: Suspension Expired!`)
-            .setColor('#7289DA')
-            .setDescription(`**${player.RobloxName}'s suspension has concluded, they were re-ranked automatically by SaikouGroup**`)
-            .setFooter(`Suspended Player ID: ${player.RobloxID} `)
-            .setTimestamp()
-        );
+  //         if (rank !== 0) {
+  //           if (rank !== 8) await rbx.setRank(Number(process.env.GROUP), player.RobloxID, 8);
+  //         }
+  //       } catch (err) {
+  //         return;
+  //       }
+  //     } else {
+  //       // -- Reranking player and removing document ---
+  //       bot.channels.cache.get(process.env.ADMIN_LOG).send(
+  //         new MessageEmbed() //
+  //           .setTitle(`:warning: Suspension Expired!`)
+  //           .setColor('#7289DA')
+  //           .setDescription(`**${player.RobloxName}'s suspension has concluded, they were re-ranked automatically by SaikouGroup**`)
+  //           .setFooter(`Suspended Player ID: ${player.RobloxID} `)
+  //           .setTimestamp()
+  //       );
 
-        await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+  //       await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
 
-        await timedata.deleteOne({ RobloxID: player.RobloxID });
-      }
-    });
-  }
+  //       await timedata.deleteOne({ RobloxID: player.RobloxID });
+  //     }
+  //   });
+  // }
 
-  setInterval(Suspend, 7000);
+  // setInterval(Suspend, 7000);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
