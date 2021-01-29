@@ -2,10 +2,15 @@ import { MessageEmbed } from 'discord.js';
 import rbx from 'noblox.js';
 
 export = async (bot: any, oldMember: any, newMember: any) => {
+  const guild = bot.guilds.cache.get(process.env.GUILD);
+  console.log(guild.members.fetch());
+
   const allUserRoles: string[] = [];
   let discordRole;
   const RobloxName = newMember.nickname;
   let RobloxID;
+
+  console.log(RobloxName);
 
   if (!newMember.nickname) return;
 
