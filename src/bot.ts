@@ -5,6 +5,7 @@ import RobloxToken from './models/token';
 import Exile from './models/userExile';
 import Words from './models/wordOrPhrase';
 import timedata from './models/suspendTimes';
+import postDeletions from './models/deletions';
 
 dotenv.config();
 
@@ -83,8 +84,8 @@ async function startApp() {
                 .setTitle(`:warning: Automatic Exile!`)
                 .setColor('#FFD62F')
                 .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-                .addField('Exile Giver:', `${player.Moderator}`, true)
-                .addField('Exile Reason:', `${player.Reason}`, true)
+                .addField('Exile Giver:', `${player.Moderator}`)
+                .addField('Exile Reason:', `${player.Reason}`)
                 .setFooter(`Exiled Player ID: ${player.RobloxID} `)
                 .setTimestamp()
             );
@@ -98,78 +99,114 @@ async function startApp() {
 
   setInterval(SuspendAndExile, 7000);
 
-  async function DeletePosts(): Promise<void> {
-    try {
-      rbx.getWall(Number(process.env.GROUP), 'Desc', 10).then(async (WallPostPage) => {
-        const posts = WallPostPage.data;
-        const blacklisted = await Words.find({}).select('content');
+  const wallPost = rbx.onWallPost(Number(process.env.GROUP));
 
-        for (let i = 0; i < posts.length; i += 1) {
-          const msg = posts[i];
+  wallPost.on('connect', () => {
+    console.log('[SUCCESS]: Listening for new wall posts!');
+  });
 
-          blacklisted.forEach(async (word: any) => {
-            if (msg.body.toLowerCase().includes(word.content)) {
-              try {
-                await rbx.deleteWallPost(Number(process.env.GROUP), msg.id);
-              } catch (err) {
-                console.log(err);
-                return;
-              }
-              bot.channels.cache.get(process.env.ADMIN_LOG).send(
-                new MessageEmbed() //
-                  .setTitle(`:warning: Post deleted!`)
-                  .setColor('#FFD62F')
-                  .setDescription(`**${Object.values(msg.poster)[0].username}'s post was deleted automatically by SaikouGroup**`)
-                  .addField('Deleted Message:', msg.body)
-                  .addField('Deletion Reason:', `Post included the word/phrase **${word.content}** which is blacklisted.`)
-                  .setFooter(`Deleted Post Player ID: ${Object.values(msg.poster)[0].userId} `)
-                  .setTimestamp()
-              );
-            }
-          });
+  wallPost.on('error', (err) => console.log(`WallPost error: ${err}`));
+
+  try {
+    wallPost.on('data', async (post) => {
+      if (undefined) return;
+
+      const robloxName: string = Object.values(post.poster)[0].username;
+      const robloxID: number = Object.values(post.poster)[0].userId;
+      let blacklistedWord: string = '';
+
+      const blacklisted = await Words.find({}).select('content');
+      const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
+
+      blacklisted.forEach(async (word: any) => {
+        if (post.body.toLowerCase().includes(word.content)) {
+          blacklistedWord = word.content;
+          try {
+            await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
+          } catch (err) {
+            return;
+          }
         }
       });
-    } catch (err) {
-      return;
-    }
+
+      const log = new MessageEmbed() //
+        .setTitle(`:warning: Post deleted!`)
+        .setColor('#FFD62F')
+        .setDescription(`**${robloxName}'s post was deleted automatically by SaikouGroup**`)
+        .addField('Deleted Message:', post.body)
+        .addField('Deletion Reason:', `Post included the word/phrase **${blacklistedWord}** which is blacklisted.`)
+        .setFooter(`Deleted Post Player ID: ${robloxID} `)
+        .setTimestamp();
+
+      const suspension = new MessageEmbed() //
+        .setTitle(`:warning: Automatic Suspension!`)
+        .setColor('#FFD62F')
+        .setDescription(`**${robloxName}'s was suspended automatically by SaikouGroup**`)
+        .addField('Deleted Message:', post.body)
+        .setFooter(`Suspended Player ID: ${robloxID} `)
+        .setTimestamp();
+
+      if (!postDeleted) {
+        const newData = await postDeletions.create({ RobloxName: robloxName, RobloxID: robloxID, Triggers: 1 });
+        await newData.save();
+
+        return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+      }
+
+      postDeleted.Triggers += 1;
+      postDeleted.save();
+
+      if (postDeleted.Triggers === 3) {
+        const newTime = await timedata.create({
+          RobloxName: robloxName,
+          RobloxID: robloxID,
+          timestamp: new Date(),
+          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
+          Duration: 259200000,
+        });
+
+        await newTime.save();
+
+        suspension.addField('Suspension Duration:', '3 days');
+        suspension.addField('Suspension Reason:', 'Player posted 3 blacklisted posts.');
+
+        return bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
+      }
+
+      if (postDeleted.Triggers === 5) {
+        const newTime = await timedata.create({
+          RobloxName: robloxName,
+          RobloxID: robloxID,
+          timestamp: new Date(),
+          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
+          Duration: 604800000,
+        });
+
+        await newTime.save();
+
+        suspension.addField('Suspension Duration:', '7 days');
+        suspension.addField('Suspension Reason:', 'Player posted 5 blacklisted posts.');
+
+        return bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
+      }
+
+      if (postDeleted.Triggers === 7) {
+        const newSettings = await Exile.create({
+          Moderator: 'SaikouGroup',
+          Reason: '**[Automated]** Player posted 7 blacklisted posts before/after suspensions.',
+          RobloxUsername: robloxName,
+          RobloxID: robloxID,
+        });
+
+        await newSettings.save();
+        return;
+      }
+
+      bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+    });
+  } catch (err) {
+    console.log(`Caught error: ${err}`);
   }
-
-  setInterval(DeletePosts, 120000);
-
-  // async function Suspend(): Promise<void> {
-  //   const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
-
-  //   (await data).forEach(async (player) => {
-  //     // -- Checking if player is still suspended if time has not expired ---
-  //     if (player.timestamp.getTime() + player.Duration > Date.now()) {
-  //       try {
-  //         const rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
-
-  //         if (rank !== 0) {
-  //           if (rank !== 8) await rbx.setRank(Number(process.env.GROUP), player.RobloxID, 8);
-  //         }
-  //       } catch (err) {
-  //         return;
-  //       }
-  //     } else {
-  //       // -- Reranking player and removing document ---
-  //       bot.channels.cache.get(process.env.ADMIN_LOG).send(
-  //         new MessageEmbed() //
-  //           .setTitle(`:warning: Suspension Expired!`)
-  //           .setColor('#7289DA')
-  //           .setDescription(`**${player.RobloxName}'s suspension has concluded, they were re-ranked automatically by SaikouGroup**`)
-  //           .setFooter(`Suspended Player ID: ${player.RobloxID} `)
-  //           .setTimestamp()
-  //       );
-
-  //       await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
-
-  //       await timedata.deleteOne({ RobloxID: player.RobloxID });
-  //     }
-  //   });
-  // }
-
-  // setInterval(Suspend, 7000);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
