@@ -7,6 +7,8 @@ const suspendTimeSchema: Schema = new Schema({
   timestamp: { type: Date, default: new Date(0) },
   Role: { type: String },
   Duration: { type: Number },
+  Moderator: { type: String },
+  Reason: { type: String },
 });
 
 export = model<TimeTypes>('SuspendTimes', suspendTimeSchema);

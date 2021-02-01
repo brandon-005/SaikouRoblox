@@ -6,4 +6,6 @@ export interface TimeTypes extends Document {
   timestamp: Date;
   Role: string;
   Duration: number;
+  Moderator: string;
+  Reason: string;
 }

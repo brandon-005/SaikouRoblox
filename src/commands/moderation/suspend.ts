@@ -12,6 +12,10 @@ export = {
     aliases: ['usersuspend', 'robloxsuspend'],
   },
   run: async (bot: any, message: Message) => {
+    let modName = message.guild!.member(message.author)?.nickname;
+
+    if (modName === null) modName = message.author.username;
+
     if (!message.member!.hasPermission('KICK_MEMBERS')) {
       return message.channel.send(
         new MessageEmbed() //
@@ -140,6 +144,8 @@ export = {
             timestamp: new Date(),
             Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), RobloxID),
             Duration: ms(Duration),
+            Moderator: modName,
+            Reason,
           });
 
           await newTime.save();
