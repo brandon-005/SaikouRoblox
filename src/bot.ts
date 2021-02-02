@@ -1,4 +1,5 @@
 import rbx from 'noblox.js';
+import axios from 'axios';
 import { Client, Collection, MessageEmbed } from 'discord.js';
 import dotenv from 'dotenv';
 import RobloxToken from './models/token';
@@ -34,7 +35,11 @@ async function startApp() {
   const cookie = await RobloxToken.findOne({ Test: process.env.RobloxTest });
   if (!cookie) return console.error('No token');
 
-  await rbx.setCookie(`${cookie.RobloxToken}`);
+  try {
+    await rbx.setCookie(cookie.RobloxToken.toString());
+  } catch (err) {
+    console.log(`login error: ${err}`);
+  }
 
   console.log(`[SUCCESS]: Logged into the "${(await rbx.getCurrentUser()).UserName}" Roblox account!`);
 
@@ -105,12 +110,11 @@ async function startApp() {
     console.log('[SUCCESS]: Listening for new wall posts!');
   });
 
-  wallPost.on('error', () => undefined);
-
   wallPost.on('data', async (post) => {
     const robloxName: string = Object.values(post.poster)[0].username;
     const robloxID: number = Object.values(post.poster)[0].userId;
     let blacklistedWord: string = '';
+    let noDeletes = true;
 
     const blacklisted = await Words.find({}).select('content');
     const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
@@ -118,6 +122,7 @@ async function startApp() {
     blacklisted.forEach(async (word: any) => {
       if (post.body.toLowerCase().includes(word.content)) {
         blacklistedWord = word.content;
+        noDeletes = false;
         try {
           await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
         } catch (err) {
@@ -125,6 +130,8 @@ async function startApp() {
         }
       }
     });
+
+    if (noDeletes === true) return;
 
     const log = new MessageEmbed() //
       .setTitle(`:warning: Post deleted!`)
@@ -154,17 +161,17 @@ async function startApp() {
     postDeleted.save();
 
     if (postDeleted.Triggers === 3) {
-      const newTime = await timedata.create({
-        RobloxName: robloxName,
-        RobloxID: robloxID,
-        timestamp: new Date(),
-        Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
-        Duration: 259200000,
-        Moderator: 'SaikouGroup',
-        Reason: '**[Automated]** Player posted 3 blacklisted posts.',
-      });
-
-      await newTime.save();
+      await (
+        await timedata.create({
+          RobloxName: robloxName,
+          RobloxID: robloxID,
+          timestamp: new Date(),
+          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
+          Duration: 259200000,
+          Moderator: 'SaikouGroup',
+          Reason: '**[Automated]** Player posted 3 blacklisted posts.',
+        })
+      ).save();
 
       suspension.addField('Suspension Duration:', '3 days');
       suspension.addField('Suspension Reason:', 'Player posted 3 blacklisted posts.');
@@ -173,17 +180,17 @@ async function startApp() {
     }
 
     if (postDeleted.Triggers === 5) {
-      const newTime = await timedata.create({
-        RobloxName: robloxName,
-        RobloxID: robloxID,
-        timestamp: new Date(),
-        Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
-        Duration: 604800000,
-        Moderator: 'SaikouGroup',
-        Reason: '**[Automated]** Player posted 5 blacklisted posts.',
-      });
-
-      await newTime.save();
+      await (
+        await timedata.create({
+          RobloxName: robloxName,
+          RobloxID: robloxID,
+          timestamp: new Date(),
+          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
+          Duration: 604800000,
+          Moderator: 'SaikouGroup',
+          Reason: '**[Automated]** Player posted 5 blacklisted posts.',
+        })
+      ).save();
 
       suspension.addField('Suspension Duration:', '7 days');
       suspension.addField('Suspension Reason:', 'Player posted 5 blacklisted posts.');
@@ -192,19 +199,32 @@ async function startApp() {
     }
 
     if (postDeleted.Triggers === 7) {
-      const newSettings = await Exile.create({
-        Moderator: 'SaikouGroup',
-        Reason: '**[Automated]** Player posted 7 blacklisted posts before/after suspensions.',
-        RobloxUsername: robloxName,
-        RobloxID: robloxID,
+      await (
+        await Exile.create({
+          Moderator: 'SaikouGroup',
+          Reason: '**[Automated]** Player posted 7 blacklisted posts before/after suspensions.',
+          RobloxUsername: robloxName,
+          RobloxID: robloxID,
+        })
+      ).save();
+
+      await axios({
+        url: `https://groups.roblox.com/v1/groups/${process.env.GROUP}/wall/users/${robloxID}/posts`,
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': await rbx.getGeneralToken(),
+          Cookie: `.ROBLOSECURITY=${cookie.RobloxToken}`,
+        },
       });
 
-      await newSettings.save();
       return;
     }
 
     bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
   });
+
+  wallPost.on('error', () => undefined);
 
   // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
 
