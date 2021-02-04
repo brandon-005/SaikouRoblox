@@ -4,10 +4,8 @@ import rbx from 'noblox.js';
 export = async (bot: any, oldMember: any, newMember: any) => {
   const allUserRoles: string[] = [];
   let discordRole;
-  const RobloxName = newMember.nickname;
+  let RobloxName = newMember.nickname;
   let RobloxID;
-
-  if (!newMember.nickname) return;
 
   if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
     newMember.roles.cache.forEach((role: any) => {
@@ -23,7 +21,12 @@ export = async (bot: any, oldMember: any, newMember: any) => {
   try {
     RobloxID = await rbx.getIdFromUsername(RobloxName);
   } catch (err) {
-    return;
+    try {
+      RobloxName = newMember.user.username;
+      RobloxID = await rbx.getIdFromUsername(RobloxName);
+    } catch (error) {
+      return;
+    }
   }
 
   if (allUserRoles.includes('Staff')) return;

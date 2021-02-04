@@ -1,6 +1,8 @@
 import { Message, MessageEmbed } from 'discord.js';
 import rbx from 'noblox.js';
+import axios from 'axios';
 import Exile from '../../models/userExile';
+import cookie from '../../models/token';
 
 export = {
   config: {
@@ -132,6 +134,18 @@ export = {
               .setDescription(`You successfully permanently exiled **${RobloxName}**`)
               .setTimestamp()
           );
+
+          const cookieToken = await cookie.findOne({ Test: process.env.RobloxTest });
+
+          await axios({
+            url: `https://groups.roblox.com/v1/groups/${process.env.GROUP}/wall/users/${RobloxID}/posts`,
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': await rbx.getGeneralToken(),
+              Cookie: `.ROBLOSECURITY=${cookieToken?.RobloxToken}`,
+            },
+          });
 
           const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'png', false);
 

@@ -7,7 +7,7 @@ export = {
     description: 'Remove a blacklisted word.',
     usage: '.removeBlacklist',
     accessableby: 'ADMINISTRATOR',
-    aliases: ['removeword', 'deleteword'],
+    aliases: ['removeword', 'deleteword', 'unlist', 'removeblacklist', 'unblacklist'],
   },
   run: async (bot: any, message: Message) => {
     if (!message.member!.hasPermission('ADMINISTRATOR')) {
