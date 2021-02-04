@@ -83,18 +83,7 @@ async function startApp() {
     (await user).forEach(async (player: { RobloxID: any; RobloxUsername: String; Moderator: String; Reason: String }) => {
       try {
         if (rank !== 0) {
-          await rbx.exile(Number(process.env.GROUP), player.RobloxID).then((): void => {
-            bot.channels.cache.get(process.env.ADMIN_LOG).send(
-              new MessageEmbed() //
-                .setTitle(`:warning: Automatic Exile!`)
-                .setColor('#FFD62F')
-                .setDescription(`**${player.RobloxUsername} was exiled automatically by SaikouGroup**`)
-                .addField('Exile Giver:', `${player.Moderator}`)
-                .addField('Exile Reason:', `${player.Reason}`)
-                .setFooter(`Exiled Player ID: ${player.RobloxID} `)
-                .setTimestamp()
-            );
-          });
+          await rbx.exile(Number(process.env.GROUP), player.RobloxID);
         }
       } catch (err) {
         return;
@@ -105,6 +94,7 @@ async function startApp() {
   setInterval(SuspendAndExile, 7000);
 
   const wallPost = rbx.onWallPost(Number(process.env.GROUP));
+  const auditLog = rbx.onAuditLog(5447155);
 
   wallPost.on('connect', () => {
     console.log('[SUCCESS]: Listening for new wall posts!');
@@ -226,49 +216,52 @@ async function startApp() {
 
   wallPost.on('error', () => undefined);
 
-  // Fix random error with logs... Unhandled rejection Error: Authorization has been denied for this request.
-
   // -- Change Rank logs
-  //   rbx.onAuditLog(5447155).on('data', async (data) => {
-  //     console.log(data);
-  //     if (data.actionType === 'Change Rank') {
-  //       bot.channels.cache.get('795630559660736513').send(
-  //         new MessageEmbed() //
-  //           .setTitle(`:warning: Updated Role!`)
-  //           .setColor('#FFD62F')
-  //           .setDescription(`**${Object.values(data.description)[3]}'s role was updated by ${data.actor.user.username}**`)
-  //           .addField('Old Role:', Object.values(data.description)[4], true)
-  //           .addField('New Role:', Object.values(data.description)[5], true)
-  //           .setFooter(`Updated User ID: ${Object.values(data.description)[0]} `)
-  //           .setTimestamp()
-  //       );
-  //     }
+  wallPost.on('connect', () => {
+    console.log('[SUCCESS]: Listening for new audit logs!');
+  });
 
-  //     if (data.actionType === 'Remove Member') {
-  //       const user = await Exile.findOne({ RobloxUsername: Object.values(data.description)[1] });
-  //       if (user) {
-  //         bot.channels.cache.get('795630559660736513').send(
-  //           new MessageEmbed() //
-  //             .setTitle(`:warning: Automatic Exile!`)
-  //             .setColor('#FFD62F')
-  //             .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
-  //             .addField('Exile Giver:', `${user.Moderator}`, true)
-  //             .addField('Exile Reason:', `${user.Reason}`, true)
-  //             .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
-  //             .setTimestamp()
-  //         );
-  //       } else {
-  //         bot.channels.cache.get('795630559660736513').send(
-  //           new MessageEmbed() //
-  //             .setTitle(`:warning: Exiled User!`)
-  //             .setColor('#FFD62F')
-  //             .setDescription(`**${Object.values(data.description)[1]}'s was exiled by ${data.actor.user.username}**`)
-  //             .setFooter(`Updated User ID: ${Object.values(data.description)[0]} `)
-  //             .setTimestamp()
-  //         );
-  //       }
-  //    }
-  //   });
+  auditLog.on('data', async (data) => {
+    if (data.actionType === 'Change Rank') {
+      bot.channels.cache.get(process.env.ADMIN_LOG).send(
+        new MessageEmbed() //
+          .setTitle(`:warning: Updated Role!`)
+          .setColor('#FFD62F')
+          .setDescription(`**${Object.values(data.description)[3]}'s role was updated by ${data.actor.user.username}**`)
+          .addField('Old Role:', Object.values(data.description)[4])
+          .addField('New Role:', Object.values(data.description)[5])
+          .setFooter(`Updated User ID: ${Object.values(data.description)[0]} `)
+          .setTimestamp()
+      );
+    }
+
+    if (data.actionType === 'Remove Member') {
+      const user = await Exile.findOne({ RobloxUsername: Object.values(data.description)[1] });
+      if (user) {
+        bot.channels.cache.get(process.env.ADMIN_LOG).send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Automatic Exile!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
+            .addField('Exile Giver:', `${user.Moderator}`, true)
+            .addField('Exile Reason:', `${user.Reason}`, true)
+            .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
+            .setTimestamp()
+        );
+      } else {
+        bot.channels.cache.get(process.env.ADMIN_LOG).send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Exiled User!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${Object.values(data.description)[1]}'s was exiled by ${data.actor.user.username}**`)
+            .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
+            .setTimestamp()
+        );
+      }
+    }
+  });
+
+  auditLog.on('error', () => undefined);
 }
 
 startApp();
