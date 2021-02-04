@@ -94,7 +94,7 @@ async function startApp() {
   setInterval(SuspendAndExile, 7000);
 
   const wallPost = rbx.onWallPost(Number(process.env.GROUP));
-  const auditLog = rbx.onAuditLog(5447155);
+  const auditLog = rbx.onAuditLog(Number(process.env.GROUP));
 
   wallPost.on('connect', () => {
     console.log('[SUCCESS]: Listening for new wall posts!');
