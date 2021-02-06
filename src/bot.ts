@@ -41,7 +41,8 @@ async function startApp() {
     console.log(`login error: ${err}`);
   }
 
-  console.log(`[SUCCESS]: Logged into the "${(await rbx.getCurrentUser()).UserName}" Roblox account!`);
+  const botUsername = (await rbx.getCurrentUser()).UserName;
+  console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
 
   setInterval(refreshCookie, 300000);
 
@@ -108,6 +109,14 @@ async function startApp() {
 
     const blacklisted = await Words.find({}).select('content');
     const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
+
+    if (/^(.)\1+$/.test(post.body.replace(/\s+/g, '')) === true) {
+      try {
+        return await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
+      } catch (err) {
+        return;
+      }
+    }
 
     blacklisted.forEach(async (word: any) => {
       if (post.body.toLowerCase().includes(word.content)) {
@@ -223,6 +232,7 @@ async function startApp() {
 
   auditLog.on('data', async (data) => {
     if (data.actionType === 'Change Rank') {
+      if (data.actor.user.username === botUsername) return;
       bot.channels.cache.get(process.env.ADMIN_LOG).send(
         new MessageEmbed() //
           .setTitle(`:warning: Updated Role!`)
