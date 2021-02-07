@@ -110,6 +110,10 @@ async function startApp() {
     const blacklisted = await Words.find({}).select('content');
     const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
 
+    // -- Ignoring Staff
+    if ((await rbx.getRankInGroup(Number(process.env.GROUP), robloxID)) >= 20) return;
+
+    // -- Deleting content that is just hashtags/one letter spam
     if (/^(.)\1+$/.test(post.body.replace(/\s+/g, '')) === true) {
       try {
         return await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
