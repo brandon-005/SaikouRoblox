@@ -28,7 +28,7 @@ export = {
 			Throwback to SaikouBot v1, entering the nostalgia zone`
         )
         .addField('General - 3', '`shout`, `rankup`, `listwords`')
-        .addField('Moderation - 3', '`suspend`, `permexile` `unexile`')
+        .addField('Moderation - 3', '`suspend`, `permexile` `unexile`, `clearshout`')
         .addField('Management - 2', '`blacklist`, `removeBlacklist`')
         .setFooter("Keep up your hard work, it's much appreciated!")
     );
