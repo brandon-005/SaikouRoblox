@@ -48,15 +48,29 @@ export = {
     );
 
     const collectingRobloxName = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
-    const RobloxName: any = collectingRobloxName.first()?.toString();
+    let RobloxName: any = collectingRobloxName.first()?.toString();
 
     if (cancel(collectingRobloxName.first())) return;
+
+    if (RobloxName.startsWith('<@') || RobloxName.startsWith('<@!')) {
+      RobloxName = message.guild!.member(RobloxName.replace(/[\\<>@#&!]/g, ''))?.nickname;
+    }
 
     let RobloxID;
     try {
       RobloxID = await rbx.getIdFromUsername(RobloxName);
     } catch (e) {
       return message.channel.send('Username was never inputted in time or you put in an incorrect user.');
+    }
+
+    if ((await rbx.getRankInGroup(Number(process.env.GROUP), RobloxID)) >= 20) {
+      return message.channel.send(
+        new MessageEmbed() //
+          .setTitle(`❌ Unable to suspend user!`)
+          .setDescription(`The player you are trying to perform this action on cannot be suspended.`)
+          .setColor('#f94343')
+          .setFooter(`Unable to suspend user.`)
+      );
     }
 
     const rankName: string = await rbx.getRankNameInGroup(Number(process.env.GROUP), RobloxID);
@@ -153,7 +167,6 @@ export = {
           try {
             await rbx.setRank(Number(process.env.GROUP), RobloxID, 8);
           } catch (err) {
-            console.log(err);
             return message.channel.send(
               new MessageEmbed() //
                 .setTitle(`❌ Unable to suspend user!`)

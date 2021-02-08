@@ -48,9 +48,13 @@ export = {
     );
 
     const collectingRobloxName = await message.channel.awaitMessages((userMessage: any) => userMessage.author.id === message.author.id, { time: 120000, max: 1 });
-    const RobloxName: any = collectingRobloxName.first()?.toString();
+    let RobloxName: any = collectingRobloxName.first()?.toString();
 
     if (cancel(collectingRobloxName.first())) return;
+
+    if (RobloxName.startsWith('<@') || RobloxName.startsWith('<@!')) {
+      RobloxName = message.guild!.member(RobloxName.replace(/[\\<>@#&!]/g, ''))?.nickname;
+    }
 
     let RobloxID;
     try {
@@ -65,11 +69,9 @@ export = {
           .setTimestamp()
       );
     }
-
-    const RobloxRank = await rbx.getRankInGroup(Number(process.env.GROUP), RobloxID);
     const Player = await Exile.findOne({ RobloxID });
 
-    if (RobloxRank >= 50) {
+    if ((await rbx.getRankInGroup(Number(process.env.GROUP), RobloxID)) >= 20) {
       return message.channel.send(
         new MessageEmbed() //
           .setTitle(`❌ Unable to exile user!`)
