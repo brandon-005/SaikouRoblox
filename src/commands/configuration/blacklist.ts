@@ -22,7 +22,7 @@ export = {
 
     message.channel.send(
       new MessageEmbed()
-        .setTitle('Prompt [1/1]') //
+        .setTitle('Prompt [1/2]') //
         .setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to blacklist a new word/phrase.\n\n❓ **What is the word/phrase you would like to blacklist?**\n\nInput **cancel** to cancel the blacklist prompt.`)
         .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
         .setColor('#7289DA')
@@ -55,10 +55,28 @@ export = {
     }
 
     try {
+      const warnable = await message.channel.send(
+        new MessageEmbed()
+          .setTitle('Prompt [2/2]') //
+          .setDescription(`Please follow the instructions provided to blacklist a word.\n\n❓ **Do you want this word to be subject to auto moderation action?**\n\nReacting with ✅ will make this word subject to moderation, whereas reacting with ❌ will only delete posts.`)
+          .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
+          .setColor('#7289DA')
+          .setThumbnail(bot.user!.displayAvatarURL())
+      );
+      warnable.react('✅');
+      warnable.react('❌');
+
+      const collectingWarnBoolean = await warnable.awaitReactions((reaction: any, user: any) => ['✅', '❌'].includes(reaction.emoji.name) && user.id === message.author.id, { time: 120000, max: 1, errors: ['time'] });
+      const result = collectingWarnBoolean.first()?.emoji.name;
+      let autoMod;
+
+      if (result === '✅') autoMod = true;
+      else autoMod = false;
+
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to blacklist the word/phrase.\n\n❓ **Are the following fields correct for the blacklist?**\n\n• \`Word/Phrase\` - **${wordOrPhrase}**\n\nIf the fields above look correct you can blacklist this word/phrase by reacting with a ✅ or cancel the blacklist with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to blacklist the word/phrase.\n\n❓ **Are the following fields correct for the blacklist?**\n\n• \`Word/Phrase\` - **${wordOrPhrase}**\n• \`Auto Moderation\` - **${autoMod}**\n\nIf the fields above look correct you can blacklist this word/phrase by reacting with a ✅ or cancel the blacklist with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -71,6 +89,7 @@ export = {
       if (ConfirmationResult === '✅') {
         const newSettings = await word.create({
           content: wordOrPhrase,
+          Warnable: autoMod,
         });
 
         await newSettings.save();

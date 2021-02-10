@@ -44,6 +44,8 @@ async function startApp() {
   const botUsername = (await rbx.getCurrentUser()).UserName;
   console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
 
+  console.log(await rbx.getPlaceInfo(62124643));
+
   setInterval(refreshCookie, 300000);
 
   async function SuspendAndExile(): Promise<void> {
@@ -94,26 +96,6 @@ async function startApp() {
 
   setInterval(SuspendAndExile, 7000);
 
-  async function AgeExile() {
-    const followers = await rbx.getPlayers(Number(process.env.GROUP), Number(process.env.FOLLOWER), 'Desc', 3);
-
-    followers.forEach(async (follower) => {
-      let info;
-      try {
-        info = await rbx.getPlayerInfo(follower.userId);
-      } catch (err) {
-        console.log(err);
-        return;
-      }
-
-      if (info.age! <= 3) {
-        return rbx.exile(Number(process.env.GROUP), follower.userId);
-      }
-    });
-  }
-
-  setInterval(AgeExile, 7000);
-
   const wallPost = rbx.onWallPost(Number(process.env.GROUP));
   const auditLog = rbx.onAuditLog(Number(process.env.GROUP));
 
@@ -126,8 +108,9 @@ async function startApp() {
     const robloxID: number = Object.values(post.poster)[0].userId;
     let blacklistedWord: string = '';
     let noDeletes = true;
+    let warnable = true;
 
-    const blacklisted = await Words.find({}).select('content');
+    const blacklisted = await Words.find({}).select('content Warnable');
     const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
 
     // -- Ignoring Staff
@@ -146,6 +129,7 @@ async function startApp() {
       if (post.body.toLowerCase().includes(word.content)) {
         blacklistedWord = word.content;
         noDeletes = false;
+        if (word.Warnable === false) warnable = false;
         try {
           await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
         } catch (err) {
@@ -180,8 +164,10 @@ async function startApp() {
       return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
     }
 
-    postDeleted.Triggers += 1;
-    postDeleted.save();
+    if (warnable === true) {
+      postDeleted.Triggers += 1;
+      postDeleted.save();
+    }
 
     if (postDeleted.Triggers === 3) {
       await (
@@ -279,17 +265,6 @@ async function startApp() {
             .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
             .addField('Exile Giver:', `${user.Moderator}`)
             .addField('Exile Reason:', `${user.Reason}`)
-            .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
-            .setTimestamp()
-        );
-      } else if (!user && data.actor.user.username === botUsername) {
-        return bot.channels.cache.get(process.env.ADMIN_LOG).send(
-          new MessageEmbed() //
-            .setTitle(`:warning: Automatic Exile!`)
-            .setColor('#FFD62F')
-            .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
-            .addField('Exile Giver:', `${data.actor.user.username}`)
-            .addField('Exile Reason:', '**[Automated]** Account age is less than or equal to 3 days old.')
             .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
             .setTimestamp()
         );
