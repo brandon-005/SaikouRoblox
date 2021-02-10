@@ -44,8 +44,6 @@ async function startApp() {
   const botUsername = (await rbx.getCurrentUser()).UserName;
   console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
 
-  console.log(await rbx.getPlaceInfo(62124643));
-
   setInterval(refreshCookie, 300000);
 
   async function SuspendAndExile(): Promise<void> {
