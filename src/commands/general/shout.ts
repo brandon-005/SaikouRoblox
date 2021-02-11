@@ -52,10 +52,26 @@ export = {
         );
       }
 
+      let previousShout = (await rbx.getShout(Number(process.env.GROUP))).body;
+
+      if (ShoutMessage!.content === previousShout) {
+        return message.channel.send(
+          new MessageEmbed() //
+            .setTitle(`❌ Unable to post shout!`)
+            .setDescription(`The shout content is the same as the current posted shout.`)
+            .setColor('#f94343')
+            .setFooter(`Same shout`)
+        );
+      }
+
+      if (!previousShout) {
+        previousShout = 'No shout currently posted.';
+      }
+
       const confirm = await message.channel.send(
         new MessageEmbed() //
           .setTitle('Are you sure?') //
-          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nThis shout will replace the following shout posted: \n**${(await rbx.getShout(Number(process.env.GROUP))).body}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
+          .setDescription(`Please confirm this final prompt to post the shout.\n\n❓ **Are the following fields correct for the shout?**\n\n• \`Shout Message\` - **${ShoutMessage}**\n\nThis shout will replace the following shout posted: \n**${previousShout}**\n\nIf the fields above look correct you can post this shout by reacting with a ✅ or cancel the post with ❌ if these fields don't look right.`)
           .setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
           .setColor('#f94343')
       );
@@ -83,7 +99,6 @@ export = {
             .setDescription(`The shout has been cancelled successfully.`)
             .setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
             .setColor('#2ED85F')
-            .setThumbnail(bot.user!.displayAvatarURL())
         );
     } catch (e) {
       return message.channel.send(

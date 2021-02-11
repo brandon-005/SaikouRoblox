@@ -41,7 +41,8 @@ async function startApp() {
     console.log(`login error: ${err}`);
   }
 
-  console.log(`[SUCCESS]: Logged into the "${(await rbx.getCurrentUser()).UserName}" Roblox account!`);
+  const botUsername = (await rbx.getCurrentUser()).UserName;
+  console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
 
   setInterval(refreshCookie, 300000);
 
@@ -105,14 +106,28 @@ async function startApp() {
     const robloxID: number = Object.values(post.poster)[0].userId;
     let blacklistedWord: string = '';
     let noDeletes = true;
+    let warnable = true;
 
-    const blacklisted = await Words.find({}).select('content');
+    const blacklisted = await Words.find({}).select('content Warnable');
     const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
+
+    // -- Ignoring Staff
+    if ((await rbx.getRankInGroup(Number(process.env.GROUP), robloxID)) >= 20) return;
+
+    // -- Deleting content that is just hashtags/one letter spam
+    if (/^(.)\1+$/.test(post.body.replace(/\s+/g, '')) === true) {
+      try {
+        return await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
+      } catch (err) {
+        return;
+      }
+    }
 
     blacklisted.forEach(async (word: any) => {
       if (post.body.toLowerCase().includes(word.content)) {
         blacklistedWord = word.content;
         noDeletes = false;
+        if (word.Warnable === false) warnable = false;
         try {
           await rbx.deleteWallPost(Number(process.env.GROUP), post.id);
         } catch (err) {
@@ -147,8 +162,10 @@ async function startApp() {
       return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
     }
 
-    postDeleted.Triggers += 1;
-    postDeleted.save();
+    if (warnable === true) {
+      postDeleted.Triggers += 1;
+      postDeleted.save();
+    }
 
     if (postDeleted.Triggers === 3) {
       await (
@@ -223,6 +240,7 @@ async function startApp() {
 
   auditLog.on('data', async (data) => {
     if (data.actionType === 'Change Rank') {
+      if (data.actor.user.username === botUsername) return;
       bot.channels.cache.get(process.env.ADMIN_LOG).send(
         new MessageEmbed() //
           .setTitle(`:warning: Updated Role!`)
@@ -243,8 +261,8 @@ async function startApp() {
             .setTitle(`:warning: Automatic Exile!`)
             .setColor('#FFD62F')
             .setDescription(`**${Object.values(data.description)[1]} was exiled automatically by ${data.actor.user.username}**`)
-            .addField('Exile Giver:', `${user.Moderator}`, true)
-            .addField('Exile Reason:', `${user.Reason}`, true)
+            .addField('Exile Giver:', `${user.Moderator}`)
+            .addField('Exile Reason:', `${user.Reason}`)
             .setFooter(`Exiled User ID: ${Object.values(data.description)[0]} `)
             .setTimestamp()
         );

@@ -21,12 +21,18 @@ export = {
       );
     }
 
-    message.channel.send(
-      new MessageEmbed() //
-        .setTitle('📢 Current Shout')
-        .setDescription(`**${shout.poster.username} posted a new shout on ${new Date(shout.updated).toLocaleDateString('en-gb', { year: 'numeric', month: 'long', day: 'numeric' })}.**\n\n__**Shout Content**__\n${shout.body}`)
-        .setFooter(`Poster Player ID: ${shout.poster.userId} `)
-        .setColor('#7289DA')
-    );
+    const shoutEmbed = new MessageEmbed() //
+      .setTitle('📢 Current Shout')
+      .setColor('#7289DA');
+
+    if (!shout.body) {
+      shoutEmbed.setDescription('**There is no shout currently posted.**');
+      shoutEmbed.setFooter('No shout posted');
+    } else {
+      shoutEmbed.setDescription(`**${shout.poster.username} posted a new shout on ${new Date(shout.updated).toLocaleDateString('en-gb', { year: 'numeric', month: 'long', day: 'numeric' })}.**\n\n__**Shout Content**__\n${shout.body}`);
+      shoutEmbed.setFooter(`Poster Player ID: ${shout.poster.userId} `);
+    }
+
+    message.channel.send(shoutEmbed);
   },
 };

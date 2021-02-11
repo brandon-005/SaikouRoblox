@@ -86,22 +86,26 @@ export = {
             .setFooter(`Suspended Player ID: ${player.RobloxID}`)
         );
       }
-      const data = timeData.find({}).select('RobloxName Duration Reason');
+      const data = await timeData.find({}).select('RobloxName Duration Reason');
       let text = '';
 
-      (await data).forEach((player) => {
+      data.forEach((player) => {
         text += `**${player.RobloxName}** - ${ms(player.Duration)}\n${player.Reason}\n\n`;
       });
 
-      return message.channel
-        .send(
-          new MessageEmbed() //
-            .setTitle('📂 Current Suspensions')
-            .setDescription(`All the currently suspended players will show up here displaying their name, reason for suspension and duration.\n\n**Look at a players suspension more in depth by choosing to view a specific one.**\n\n${text}`)
-            .setColor('#7289DA')
-            .setFooter(`All suspended players.`)
-        )
-        .catch(() => message.channel.send('There is too many suspensions to list at the moment.'));
+      const suspendEmbed = new MessageEmbed() //
+        .setTitle('📂 Current Suspensions')
+        .setColor('#7289DA');
+
+      if (data.length === 0) {
+        suspendEmbed.setDescription("Oops! It doesn't appear anyone is suspended at the moment.");
+        suspendEmbed.setFooter('No suspended players.');
+      } else {
+        suspendEmbed.setDescription(`All the currently suspended players will show up here displaying their name, reason for suspension and duration.\n\n**Look at a players suspension more in depth by choosing to view a specific one.**\n\n${text}`);
+        suspendEmbed.setFooter(`All suspended players.`);
+      }
+
+      return message.channel.send(suspendEmbed).catch(() => message.channel.send('There is too many suspensions to list at the moment.'));
     } catch (err) {
       return message.channel.send(
         new MessageEmbed() //
