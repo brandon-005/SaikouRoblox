@@ -39,6 +39,19 @@ async function startApp() {
     await rbx.setCookie(cookie.RobloxToken.toString());
   } catch (err) {
     console.log(`login error: ${err}`);
+    let noBot = true;
+
+    bot.channels.cache
+      .get(process.env.GEN_STAFF)
+      .messages.fetch({ limit: 10 })
+      .then((msg: any) => {
+        msg.array().forEach((fectchedMsg: any) => {
+          if (fectchedMsg.author.bot) noBot = false;
+        });
+        if (noBot === true) {
+          return bot.channels.cache.get(process.env.GEN_STAFF).send("Hello there!\n\nIt appears I'm currently experiencing issues logging into the **Roblox Account** at the moment. Due to this, I won't be able to run any of your commands, and my features will be non-functional. <:mascotsad:658685980273803274>\n\nHowever don't fret, in the meantime, I'll be automatically restarting at random intervals with the hope of logging in successfully. You may see me head offline too, this is intended, don't worry! I'll be back up and running soon!");
+        }
+      });
   }
 
   const botUsername = (await rbx.getCurrentUser()).UserName;
