@@ -38,7 +38,6 @@ async function startApp() {
   try {
     await rbx.setCookie(cookie.RobloxToken.toString());
   } catch (err) {
-    console.log(`login error: ${err}`);
     let noBot = true;
 
     bot.channels.cache
@@ -54,8 +53,16 @@ async function startApp() {
       });
   }
 
-  const botUsername = (await rbx.getCurrentUser()).UserName;
-  console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
+  let botUsername = '';
+
+  try {
+    botUsername = (await rbx.getCurrentUser()).UserName;
+    console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
+  } catch (err) {
+    setTimeout(() => {
+      throw new Error(err);
+    }, 2000);
+  }
 
   setInterval(refreshCookie, 300000);
 
