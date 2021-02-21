@@ -95,7 +95,11 @@ async function startApp() {
             .setTimestamp()
         );
 
-        await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+        try {
+          await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+        } catch (err) {
+          return;
+        }
 
         await timedata.deleteOne({ RobloxID: player.RobloxID });
       }
