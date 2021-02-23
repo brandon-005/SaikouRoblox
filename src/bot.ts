@@ -2,7 +2,6 @@ import rbx from 'noblox.js';
 import axios from 'axios';
 import { Client, Collection, MessageEmbed } from 'discord.js';
 import dotenv from 'dotenv';
-import RobloxToken from './models/token';
 import Exile from './models/userExile';
 import Words from './models/wordOrPhrase';
 import timedata from './models/suspendTimes';
@@ -10,8 +9,11 @@ import postDeletions from './models/deletions';
 
 dotenv.config();
 
+const RbxToken = process.env.RobloxTest === 'true' ? process.env.ROBLOX_TESTTOKEN : process.env.ROBLOX_TOKEN;
+let botUsername = '';
+
 const bot: any = new Client({
-  ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MEMBERS', 'GUILD_PRESENCES'] },
+  ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MEMBERS', 'GUILD_PRESENCES', 'GUILD_BANS'] },
   partials: ['USER'],
   disableMentions: 'everyone',
 });
@@ -24,19 +26,9 @@ bot.aliases = new Collection();
 });
 ['loadCommands', 'loadEvents'].forEach((handlerFile: string) => require(`./handlers/${handlerFile}.js`)(bot));
 
-async function refreshCookie() {
-  const cookieDatabase = await RobloxToken.findOne({ Test: process.env.RobloxTest });
-  const Newcookie = await rbx.refreshCookie();
-  cookieDatabase!.RobloxToken = Newcookie;
-  cookieDatabase?.save();
-}
-
 async function startApp() {
-  const cookie = await RobloxToken.findOne({ Test: process.env.RobloxTest });
-  if (!cookie) return console.error('No token');
-
   try {
-    await rbx.setCookie(cookie.RobloxToken.toString());
+    await rbx.setCookie(String(RbxToken));
   } catch (err) {
     let noBot = true;
 
@@ -53,18 +45,14 @@ async function startApp() {
       });
   }
 
-  let botUsername = '';
-
   try {
     botUsername = (await rbx.getCurrentUser()).UserName;
     console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
   } catch (err) {
     setTimeout(() => {
-      throw new Error(err);
+      console.log(err);
     }, 2000);
   }
-
-  setInterval(refreshCookie, 300000);
 
   async function SuspendAndExile(): Promise<void> {
     const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
@@ -241,7 +229,7 @@ async function startApp() {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': await rbx.getGeneralToken(),
-          Cookie: `.ROBLOSECURITY=${cookie.RobloxToken}`,
+          Cookie: `.ROBLOSECURITY=${RbxToken}`,
         },
       });
 
@@ -304,5 +292,4 @@ async function startApp() {
 
 startApp();
 
-const token = process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN;
-bot.login(token);
+bot.login(process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN);
