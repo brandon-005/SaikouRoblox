@@ -62,10 +62,10 @@ async function startApp() {
     /* --- Suspending --- */
     (await data).forEach(async (player) => {
       /* --- If suspended and time hasn't expired --- */
+      rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
+
       if (player.timestamp.getTime() + player.Duration > Date.now()) {
         try {
-          rank = await rbx.getRankInGroup(Number(process.env.GROUP), player.RobloxID);
-
           if (rank !== 0) {
             if (rank !== 8) await rbx.setRank(Number(process.env.GROUP), player.RobloxID, 8);
           }
@@ -83,7 +83,13 @@ async function startApp() {
             .setTimestamp()
         );
 
-        await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+        if (rank !== 0) {
+          try {
+            await rbx.setRank(Number(process.env.GROUP), player.RobloxID, player.Role);
+          } catch (err) {
+            return;
+          }
+        }
 
         await timedata.deleteOne({ RobloxID: player.RobloxID });
       }

@@ -113,7 +113,7 @@ export = {
 
       message.channel.send(
         new MessageEmbed()
-          .setTitle('Prompt [2/3]') //
+          .setTitle('Prompt [3/3]') //
           .setDescription(`Please follow the instructions provided to suspend a user.\n\n❓ **How long would you like to suspend this player for?**\n\nInput **cancel** to cancel the suspend prompt.`)
           .setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
           .setColor('#7289DA')
