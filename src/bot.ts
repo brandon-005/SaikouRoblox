@@ -2,16 +2,19 @@ import rbx from 'noblox.js';
 import axios from 'axios';
 import { Client, Collection, MessageEmbed } from 'discord.js';
 import dotenv from 'dotenv';
-import RobloxToken from './models/token';
 import Exile from './models/userExile';
 import Words from './models/wordOrPhrase';
 import timedata from './models/suspendTimes';
 import postDeletions from './models/deletions';
+import { DeletionTypes } from './types/deletions';
 
 dotenv.config();
 
+const RbxToken = process.env.RobloxTest === 'true' ? process.env.ROBLOX_TESTTOKEN : process.env.ROBLOX_TOKEN;
+let botUsername = '';
+
 const bot: any = new Client({
-  ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MEMBERS', 'GUILD_PRESENCES'] },
+  ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MEMBERS', 'GUILD_PRESENCES', 'GUILD_BANS'] },
   partials: ['USER'],
   disableMentions: 'everyone',
 });
@@ -24,19 +27,9 @@ bot.aliases = new Collection();
 });
 ['loadCommands', 'loadEvents'].forEach((handlerFile: string) => require(`./handlers/${handlerFile}.js`)(bot));
 
-async function refreshCookie() {
-  const cookieDatabase = await RobloxToken.findOne({ Test: process.env.RobloxTest });
-  const Newcookie = await rbx.refreshCookie();
-  cookieDatabase!.RobloxToken = Newcookie;
-  cookieDatabase?.save();
-}
-
 async function startApp() {
-  const cookie: any = await RobloxToken.findOne({ Test: process.env.RobloxTest });
-  if (!cookie) return console.error('No token');
-
   try {
-    await rbx.setCookie(cookie.RobloxToken.toString());
+    await rbx.setCookie(String(RbxToken));
   } catch (err) {
     let noBot = true;
 
@@ -53,18 +46,14 @@ async function startApp() {
       });
   }
 
-  let botUsername = '';
-
   try {
     botUsername = (await rbx.getCurrentUser()).UserName;
     console.log(`[SUCCESS]: Logged into the "${botUsername}" Roblox account!`);
   } catch (err) {
     setTimeout(() => {
-      throw new Error(err);
+      console.log(err);
     }, 2000);
   }
-
-  setInterval(refreshCookie, 300000);
 
   async function SuspendAndExile(): Promise<void> {
     const data = timedata.find({}).select('RobloxName RobloxID timestamp Role Duration');
@@ -135,7 +124,6 @@ async function startApp() {
     let warnable = true;
 
     const blacklisted = await Words.find({}).select('content Warnable');
-    const postDeleted = await postDeletions.findOne({ RobloxName: robloxName });
 
     // -- Ignoring Staff
     if ((await rbx.getRankInGroup(Number(process.env.GROUP), robloxID)) >= 20) return;
@@ -181,80 +169,77 @@ async function startApp() {
       .setFooter(`Suspended Player ID: ${robloxID} `)
       .setTimestamp();
 
-    if (!postDeleted) {
-      const newData = await postDeletions.create({ RobloxName: robloxName, RobloxID: robloxID, Triggers: 1 });
-      await newData.save();
+    const creation = {
+      RobloxName: robloxName,
+      RobloxID: robloxID,
+      timestamp: new Date(),
+      Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
+      Moderator: 'SaikouGroup',
+    };
 
-      return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
-    }
+    await postDeletions.findOne({ RobloxName: robloxName }, async (err: any, postDeleted: DeletionTypes) => {
+      if (err) return console.error(err);
 
-    if (warnable === true) {
-      postDeleted.Triggers += 1;
-      postDeleted.save();
-    }
+      if (!postDeleted) {
+        const newData = await postDeletions.create({ RobloxName: robloxName, RobloxID: robloxID, Triggers: 1 });
+        await newData.save();
 
-    if (postDeleted.Triggers === 3) {
-      await (
-        await timedata.create({
-          RobloxName: robloxName,
-          RobloxID: robloxID,
-          timestamp: new Date(),
-          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
-          Duration: 259200000,
-          Moderator: 'SaikouGroup',
-          Reason: '**[Automated]** Player posted 3 blacklisted posts.',
-        })
-      ).save();
+        return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+      }
 
-      suspension.addField('Suspension Duration:', '3 days');
-      suspension.addField('Suspension Reason:', 'Player posted 3 blacklisted posts.');
+      if (warnable === true) {
+        // eslint-disable-next-line no-param-reassign
+        postDeleted.Triggers += 1;
+        await postDeleted.save();
+      }
 
-      return bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
-    }
+      switch (postDeleted.Triggers) {
+        case 3:
+          Object.assign(creation, { Duration: 259200000, Reason: '**[Automated]** Player posted 3 blacklisted posts.' });
+          (await timedata.create(creation)).save();
 
-    if (postDeleted.Triggers === 5) {
-      await (
-        await timedata.create({
-          RobloxName: robloxName,
-          RobloxID: robloxID,
-          timestamp: new Date(),
-          Role: await rbx.getRankNameInGroup(Number(process.env.GROUP), robloxID),
-          Duration: 604800000,
-          Moderator: 'SaikouGroup',
-          Reason: '**[Automated]** Player posted 5 blacklisted posts.',
-        })
-      ).save();
+          suspension.addField('Suspension Duration:', '3 days');
+          suspension.addField('Suspension Reason:', 'Player posted 3 blacklisted posts.');
 
-      suspension.addField('Suspension Duration:', '7 days');
-      suspension.addField('Suspension Reason:', 'Player posted 5 blacklisted posts.');
+          bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
+          break;
 
-      return bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
-    }
+        case 5:
+          Object.assign(creation, { Duration: 604800000, Reason: '**[Automated]** Player posted 5 blacklisted posts.' });
+          (await timedata.create(creation)).save();
 
-    if (postDeleted.Triggers === 7) {
-      await (
-        await Exile.create({
-          Moderator: 'SaikouGroup',
-          Reason: '**[Automated]** Player posted 7 blacklisted posts before/after suspensions.',
-          RobloxUsername: robloxName,
-          RobloxID: robloxID,
-        })
-      ).save();
+          suspension.addField('Suspension Duration:', '7 days');
+          suspension.addField('Suspension Reason:', 'Player posted 5 blacklisted posts.');
 
-      await axios({
-        url: `https://groups.roblox.com/v1/groups/${process.env.GROUP}/wall/users/${robloxID}/posts`,
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': await rbx.getGeneralToken(),
-          Cookie: `.ROBLOSECURITY=${cookie.RobloxToken}`,
-        },
-      });
+          bot.channels.cache.get(process.env.ADMIN_LOG).send(suspension);
+          break;
 
-      return;
-    }
+        case 7:
+          (
+            await Exile.create({
+              Moderator: 'SaikouGroup',
+              Reason: '**[Automated]** Player posted 7 blacklisted posts before/after suspensions.',
+              RobloxUsername: robloxName,
+              RobloxID: robloxID,
+            })
+          ).save();
 
-    bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+          await axios({
+            url: `https://groups.roblox.com/v1/groups/${process.env.GROUP}/wall/users/${robloxID}/posts`,
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': await rbx.getGeneralToken(),
+              Cookie: `.ROBLOSECURITY=${RbxToken}`,
+            },
+          });
+          bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+          break;
+
+        default:
+          return bot.channels.cache.get(process.env.ADMIN_LOG).send(log);
+      }
+    });
   });
 
   wallPost.on('error', () => undefined);
@@ -310,5 +295,4 @@ async function startApp() {
 
 startApp();
 
-const token = process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN;
-bot.login(token);
+bot.login(process.env.TEST === 'true' ? process.env.DISCORD_TESTTOKEN : process.env.DISCORD_TOKEN);
