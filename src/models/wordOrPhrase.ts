@@ -1,9 +1,9 @@
 import { model, Schema } from 'mongoose';
-import { BlacklistTypes } from '../types/wordOrPhrase';
+import { BlacklistTypes } from '../types/schemas';
 
 const wordOrPhraseSchema: Schema = new Schema({
-  content: { type: String },
-  Warnable: { type: Boolean },
+	content: { type: String },
+	Warnable: { type: Boolean },
 });
 
 export = model<BlacklistTypes>('BlacklistPosts', wordOrPhraseSchema);

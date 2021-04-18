@@ -1,13 +1,12 @@
-import mongoose from 'mongoose';
+import { connect } from 'mongoose';
 
-export = async () => {
-  const databaseOptions = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: true,
-    keepAlive: true,
-  };
+export = async (): Promise<Object> => {
+	const databaseOptions = {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+		useFindAndModify: true,
+		keepAlive: true,
+	};
 
-  await mongoose.connect(`${process.env.MONGO_PASSWORD}`, databaseOptions);
-  return mongoose;
+	return connect(`${process.env.MONGO_PASSWORD}`, databaseOptions);
 };
