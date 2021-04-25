@@ -8,7 +8,7 @@ import Exile from './models/userExile';
 config();
 
 const bot: any = new Client({
-	ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS'] },
+	ws: { intents: ['GUILD_MESSAGES', 'GUILDS', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MEMBERS', 'GUILD_PRESENCES'] },
 	disableMentions: 'everyone',
 });
 

@@ -1,15 +1,14 @@
-import { Message, MessageEmbed } from 'discord.js';
-import rbx from 'noblox.js';
 import axios from 'axios';
-import Exile from '../../models/userExile';
+import { Message, MessageEmbed } from 'discord.js';
+import { getRankInGroup, getIdFromUsername, getPlayerThumbnail } from 'noblox.js';
 
 export = {
 	config: {
-		name: 'permexile',
-		description: 'Permanently exile a Roblox user.',
-		usage: '.exile <RobloxUserID> <reason>',
+		name: 'robloxban',
+		description: 'Permanently ban a Roblox user.',
+		usage: '.robloxban',
 		accessableby: 'KICK_MEMBERS',
-		aliases: ['permremove', 'exile'],
+		aliases: ['rbxban'],
 	},
 	run: async (bot: any, message: Message) => {
 		let modName = message.guild!.member(message.author)?.nickname;
@@ -20,7 +19,7 @@ export = {
 			return message.channel.send(
 				new MessageEmbed() //
 					.setTitle('🔐 Incorrect Permissions')
-					.setDescription('**Command Name:** permexile\n**Permissions Needed:** <KICK_MEMBERS>')
+					.setDescription('**Command Name:** robloxban\n**Permissions Needed:** <KICK_MEMBERS>')
 					.setColor('#f94343')
 					.setFooter('<> - Staff Perms ● Public Perms - [] ')
 			);
@@ -30,8 +29,8 @@ export = {
 			if (msg.content.toLowerCase() === 'cancel')
 				return message.channel.send(
 					new MessageEmbed() //
-						.setTitle('✅ Exile Cancelled!') //
-						.setDescription(`The exile has been cancelled successfully.`)
+						.setTitle('✅ Ban Cancelled!') //
+						.setDescription(`The ban has been cancelled successfully.`)
 						.setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
 						.setColor('#2ED85F')
 				);
@@ -40,7 +39,7 @@ export = {
 		message.channel.send(
 			new MessageEmbed()
 				.setTitle('Prompt [1/2]') //
-				.setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to permanently exile a user.\n\n❓ **What is the Roblox username of the person you would like to permanently remove?**\n\nInput **cancel** to cancel the exile prompt.`)
+				.setDescription(`Hello **${message.author.username}**,\n\nPlease follow the instructions provided to permanently ban a user.\n\n❓ **What is the Roblox username of the person you would like to permanently ban?**\n\nInput **cancel** to cancel the ban prompt.`)
 				.setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
 				.setColor('#7289DA')
 				.setThumbnail(bot.user!.displayAvatarURL())
@@ -57,7 +56,7 @@ export = {
 
 		let RobloxID;
 		try {
-			RobloxID = await rbx.getIdFromUsername(RobloxName);
+			RobloxID = await getIdFromUsername(RobloxName);
 		} catch (e) {
 			return message.channel.send(
 				new MessageEmbed() //
@@ -68,25 +67,35 @@ export = {
 					.setTimestamp()
 			);
 		}
-		const Player = await Exile.findOne({ RobloxID });
 
-		if ((await rbx.getRankInGroup(Number(process.env.GROUP), RobloxID)) >= 20) {
+		let banned;
+		axios({
+			url: `https://bans.saikouapi.xyz/v1/users/${RobloxID}/banned`,
+			method: 'GET',
+			headers: {
+				token: process.env.API_TOKEN,
+			},
+		}).then((res) => {
+			if (res.data.banned === true) banned = true;
+		});
+
+		if ((await getRankInGroup(Number(process.env.GROUP), RobloxID)) >= 20) {
 			return message.channel.send(
 				new MessageEmbed() //
-					.setTitle(`❌ Unable to exile user!`)
-					.setDescription(`The player you are trying to perform this action on cannot be exiled.`)
+					.setTitle(`❌ Unable to ban user!`)
+					.setDescription(`The player you are trying to perform this action on cannot be banned.`)
 					.setColor('#f94343')
 					.setFooter(`Unable to exile user.`)
 			);
 		}
 
-		if (Player) {
+		if (banned === true) {
 			return message.channel.send(
 				new MessageEmbed() //
-					.setTitle(`🚫 Already Exiled!`)
-					.setDescription(`The user you are trying to perform this action on is already exiled.`)
+					.setTitle(`🚫 Already Banned!`)
+					.setDescription(`The user you are trying to perform this action on is already banned.`)
 					.setColor('#f94343')
-					.setFooter(`Unable to exile user.`)
+					.setFooter(`Unable to ban user.`)
 			);
 		}
 
@@ -94,7 +103,7 @@ export = {
 			message.channel.send(
 				new MessageEmbed()
 					.setTitle('Prompt [2/2]') //
-					.setDescription(`Please follow the instructions provided to permanently exile a user.\n\n❓ **What is the reason for exiling this user?**\n\nInput **cancel** to cancel the exile prompt.`)
+					.setDescription(`Please follow the instructions provided to permanently ban a user.\n\n❓ **What is the reason for banning this user?**\n\nInput **cancel** to cancel the ban prompt.`)
 					.setFooter(`Setup by ${message.author.tag} | Prompt will timeout in 2 mins`, message.author.displayAvatarURL())
 					.setColor('#7289DA')
 					.setThumbnail(bot.user!.displayAvatarURL())
@@ -108,7 +117,7 @@ export = {
 			const confirm = await message.channel.send(
 				new MessageEmbed() //
 					.setTitle('Are you sure?') //
-					.setDescription(`Please confirm this final prompt to permanently suspend the user.\n\n❓ **Are the following fields correct for the exile?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can suspend this user by reacting with a ✅ or cancel the suspension with ❌ if these fields don't look right.`)
+					.setDescription(`Please confirm this final prompt to permanently ban the user.\n\n❓ **Are the following fields correct for the ban?**\n\n• \`Roblox Player\` - **[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)**\n• \`Reason\` - **${Reason}**\n\nIf the fields above look correct you can ban this user by reacting with a ✅ or cancel the ban with ❌ if these fields don't look right.`)
 					.setFooter(`Requested by ${message.author.tag} | Add reaction`, message.author.displayAvatarURL())
 					.setColor('#f94343')
 			);
@@ -119,52 +128,38 @@ export = {
 			const ConfirmationResult = collectingConfirmation.first()?.emoji.name;
 
 			if (ConfirmationResult === '✅') {
-				if (!Player) {
-					const newSettings = await Exile.create({
-						Moderator: modName,
-						Reason: `${Reason}`,
-						RobloxUsername: `${RobloxName}`,
+				await axios({
+					url: `https://bans.saikouapi.xyz/v1/bans/create-new`,
+					method: 'POST',
+					data: {
+						RobloxUsername: RobloxName,
 						RobloxID,
-					});
+						Moderator: modName,
+						Reason: Reason!.content,
+					},
+					headers: {
+						token: process.env.API_TOKEN,
+					},
+				}).then((res) => console.log(res.data));
 
-					await newSettings.save();
-					message.channel.send(
-						new MessageEmbed() //
-							.setTitle('✅ Success!')
-							.setColor('#2ED85F')
-							.setDescription(`You successfully permanently exiled **${RobloxName}**`)
-							.setTimestamp()
-					);
+				const robloxAvatar = await getPlayerThumbnail(RobloxID, 250, 'png', false);
 
-					await axios({
-						url: `https://groups.roblox.com/v1/groups/${process.env.GROUP}/wall/users/${RobloxID}/posts`,
-						method: 'DELETE',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-CSRF-TOKEN': await rbx.getGeneralToken(),
-							Cookie: `.ROBLOSECURITY=${process.env.ROBLOX_TESTING === 'true' ? process.env.ROBLOX_TEST : process.env.ROBLOX_PRODUCTION}`,
-						},
-					});
-
-					const robloxAvatar = await rbx.getPlayerThumbnail(RobloxID, 250, 'png', false);
-
-					await bot.channels.cache.get(process.env.MODERATION).send(
-						new MessageEmbed() //
-							.setAuthor(`Saikou Group | Permanent Exile`, `${Object.values(robloxAvatar)[0].imageUrl}`)
-							.addField('User:', `${RobloxName}`, true)
-							.addField('Moderator:', `<@${message.author.id}>`, true)
-							.addField('Reason:', `${Reason}`)
-							.setThumbnail(`${Object.values(robloxAvatar)[0].imageUrl}`)
-							.setColor('#2ED85F')
-							.setFooter('Exile')
-							.setTimestamp()
-					);
-				}
+				await bot.channels.cache.get(process.env.MODERATION).send(
+					new MessageEmbed() //
+						.setAuthor(`MWT | Permanent Ban`, `${Object.values(robloxAvatar)[0].imageUrl}`)
+						.addField('User:', `[${RobloxName}](https://www.roblox.com/users/${RobloxID}/profile)`, true)
+						.addField('Moderator:', modName, true)
+						.addField('Reason:', Reason!.content)
+						.setThumbnail('https://t7.rbxcdn.com/da559f4079c9173b45639f278d683846')
+						.setColor('#2ED85F')
+						.setFooter('MWT • Permanent Ban')
+						.setTimestamp()
+				);
 			} else
 				return message.channel.send(
 					new MessageEmbed() //
-						.setTitle('✅ Exile Cancelled!')
-						.setDescription(`The exile has been cancelled successfully.`)
+						.setTitle('✅ Roblox Ban Cancelled!')
+						.setDescription(`The ban has been cancelled successfully.`)
 						.setFooter(`Setup by ${message.author.tag}`, message.author.displayAvatarURL())
 						.setColor('#2ED85F')
 				);
