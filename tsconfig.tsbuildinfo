@@ -597,7 +597,7 @@
         "affectsGlobalScope": false
       },
       "./src/events/roblox/onwallpost.ts": {
-        "version": "3cefb1a09652f95e12d8dd96a515c4ea8ad7cd9960cd98f5f79f54a066c9986f",
+        "version": "36436524c0c9e3b5fcf3fb6c18aa5020be07e7843820ddbc4eb8626d6578475f",
         "signature": "cb14793b410a6c726d75b69c7b665c02d53b60f80e4d22a693d2eb63a4f22a19",
         "affectsGlobalScope": false
       },
