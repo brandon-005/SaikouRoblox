@@ -138,7 +138,7 @@ export = {
 						Reason: Reason!.content,
 					},
 					headers: {
-						token: process.env.API_TOKEN,
+						"X-API-KEY": process.env.API_TOKEN,
 					},
 				}).then((res) => console.log(res.data));
 
