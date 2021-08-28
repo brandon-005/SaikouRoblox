@@ -140,7 +140,10 @@ export = {
 					headers: {
 						"X-API-KEY": process.env.API_TOKEN,
 					},
-				}).then((res) => console.log(res.data));
+				}).then((res) => console.log(res.data))
+				.catch((err) => {
+					if (err.errorCode) return message.channel.send(`${err.errorMessage}`);
+				});
 
 				const robloxAvatar = await getPlayerThumbnail(RobloxID, 250, 'png', false);
 
