@@ -12,6 +12,7 @@ export = {
 	},
 	run: async (bot: any, message: Message) => {
 		let modName = message.guild!.member(message.author)?.nickname;
+		let errorMsg;
 
 		if (modName === null) modName = message.author.username;
 
@@ -142,8 +143,10 @@ export = {
 					},
 				}).then((res) => console.log(res.data))
 				.catch((err) => {
-					if (err.errorCode) return message.channel.send(`${err.errorMessage}`);
+					if (err.errorCode) errorMsg = err.errorMessage;
 				});
+				
+				if (errorMsg) return message.channel.send(`${errorMessage}`);
 
 				const robloxAvatar = await getPlayerThumbnail(RobloxID, 250, 'png', false);
 
