@@ -146,7 +146,7 @@ export = {
 					if (err.errorCode) errorMsg = err.errorMessage;
 				});
 				
-				if (errorMsg) return message.channel.send(`${errorMessage}`);
+				if (errorMsg) return message.channel.send(`${errorMsg}`);
 
 				const robloxAvatar = await getPlayerThumbnail(RobloxID, 250, 'png', false);
 
