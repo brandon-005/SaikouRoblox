@@ -143,7 +143,7 @@ export = {
 					},
 				}).then((res) => console.log(res.data))
 				.catch((err) => {
-					if (err.errorCode) errorMsg = err.errorMessage;
+					if (err.response.data.errorCode) errorMsg = err.response.data.message;
 				});
 				
 				if (errorMsg) return message.channel.send(`${errorMsg}`);
