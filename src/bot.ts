@@ -75,7 +75,7 @@ async function AgeExile() {
           new MessageEmbed() //
             .setTitle(`:warning: Automatic Exile!`)
             .setColor('#FFD62F')
-            .setDescription(`**${follower.robloxUsername} was exiled automatically by SaikouGroup**`)
+            .setDescription(`**${follower.username} was exiled automatically by SaikouGroup**`)
             .addField('Exile Giver:', 'SaikouGroup')
             .addField('Exile Reason:', '**[Automated]** Account age is less than or equal to 3 days old.')
             .setFooter(`Exiled User ID: ${follower.userId}`)
