@@ -1,6 +1,6 @@
 import { Client, Collection, MessageEmbed } from 'discord.js';
 import { config } from 'dotenv';
-import { exile, getRankInGroup, setRank } from 'noblox.js';
+import { exile, getRankInGroup, setRank, getPlayers, getPlayerInfo } from 'noblox.js';
 
 import timedata from './models/suspendTimes';
 import Exile from './models/userExile';
@@ -58,19 +58,19 @@ async function SuspendAndExile(): Promise<void> {
 setInterval(SuspendAndExile, 7000);
 
 async function AgeExile() {
-    const followers = await rbx.getPlayers(Number(process.env.GROUP), 1, 'Desc', 3);
+    const followers = await getPlayers(Number(process.env.GROUP), 1, 'Desc', 3);
 
     followers.forEach(async (follower) => {
       let info;
       try {
-        info = await rbx.getPlayerInfo(follower.userId);
+        info = await getPlayerInfo(follower.userId);
       } catch (err) {
         console.log(err);
         return;
       }
 
       if (info.age! <= 3) {
-        rbx.exile(Number(process.env.GROUP), follower.userId);
+        exile(Number(process.env.GROUP), follower.userId);
 	 return bot.channels.cache.get(process.env.ADMIN_LOG).send(
           new MessageEmbed() //
             .setTitle(`:warning: Automatic Exile!`)
