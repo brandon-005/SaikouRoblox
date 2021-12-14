@@ -57,4 +57,34 @@ async function SuspendAndExile(): Promise<void> {
 
 setInterval(SuspendAndExile, 7000);
 
+async function AgeExile() {
+    const followers = await rbx.getPlayers(Number(process.env.GROUP), 1, 'Desc', 3);
+
+    followers.forEach(async (follower) => {
+      let info;
+      try {
+        info = await rbx.getPlayerInfo(follower.userId);
+      } catch (err) {
+        console.log(err);
+        return;
+      }
+
+      if (info.age! <= 3) {
+        rbx.exile(Number(process.env.GROUP), follower.userId);
+	 return bot.channels.cache.get(process.env.ADMIN_LOG).send(
+          new MessageEmbed() //
+            .setTitle(`:warning: Automatic Exile!`)
+            .setColor('#FFD62F')
+            .setDescription(`**${follower.robloxUsername} was exiled automatically by SaikouGroup**`)
+            .addField('Exile Giver:', 'SaikouGroup')
+            .addField('Exile Reason:', '**[Automated]** Account age is less than or equal to 3 days old.')
+            .setFooter(`Exiled User ID: ${follower.userId}`)
+            .setTimestamp()
+        );
+      }
+    });
+  }
+
+  setInterval(AgeExile, 7000);
+
 bot.login(process.env.TESTING === 'true' ? process.env.DISCORD_TEST : process.env.DISCORD_PRODUCTION);
